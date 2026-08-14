@@ -1,0 +1,37 @@
+---
+import { url, REPO_URL } from '../lib/site';
+---
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href={url('/')}>
+      <img src={url('/icon.svg')} alt="" width="26" height="26" />
+      Sticky Reminder
+    </a>
+
+    <nav class="site-nav" aria-label="Main">
+      <div class="site-nav nav-desktop">
+        <a href={`${url('/')}#features`}>Features</a>
+        <a href={`${url('/')}#how-it-works`}>How it works</a>
+        <a href={`${url('/')}#privacy`}>Privacy</a>
+        <a href={`${url('/')}#faq`}>FAQ</a>
+      </div>
+
+      <button
+        type="button"
+        class="icon-button theme-toggle"
+        id="theme-toggle"
+        aria-label="Switch between light and dark"
+      >
+        <and-icon class="icon-light" name="moon" size="16"></and-icon>
+        <and-icon class="icon-dark" name="sun" size="16"></and-icon>
+      </button>
+
+      <a class="icon-button" href={REPO_URL} rel="noreferrer" aria-label="Source on GitHub">
+        <and-icon name="github" size="16"></and-icon>
+      </a>
+
+      <and-button href={url('/download')} size="sm">Install</and-button>
+    </nav>
+  </div>
+</header>

@@ -1,65 +1,847 @@
-@import "@andersseen/web-components/tokens.css";
-@import "@andersseen/layout/dist/layout.css";
-@import "@andersseen/motion/style.css";
+/* Tokens, host utilities, layout attributes and motion keyframes — the same
+   bundle the extension loads, so the site and the product cannot drift. */
+@import "@sticky-reminder/ui/styles";
+
+:root {
+  --site-max: 68rem;
+  --site-gutter: clamp(1rem, 4vw, 2rem);
+  --surface-raised: hsl(var(--card));
+  --hairline: var(--border-width, 1px) solid hsl(var(--border));
+}
+
+html {
+  scroll-behavior: smooth;
+}
 
 body {
-  margin: 0;
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-.landing,
-.download {
-  max-width: 760px;
-  margin: 0 auto;
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
-.hero-title {
+/* ── Primitives ─────────────────────────────────────────────────────────── */
+
+.container {
+  width: 100%;
+  max-width: var(--site-max);
+  margin-inline: auto;
+  padding-inline: var(--site-gutter);
+}
+
+.eyebrow {
   margin: 0;
-  font-size: clamp(2.25rem, 6vw, 3.5rem);
+  font-size: 0.75rem;
   font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-}
-
-.lead {
-  margin: 0;
-  font-size: 1.125rem;
-  color: hsl(var(--muted-foreground));
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: hsl(var(--primary));
 }
 
 .section-title {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: clamp(1.5rem, 3.2vw, 2.125rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
 }
 
-.feature {
-  flex: 1 1 12rem;
-}
-
-.feature-title {
-  margin: 0.5rem 0 0.25rem;
-  font-size: 1rem;
-  font-weight: 600;
+.section-lead {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 1.0625rem;
+  color: hsl(var(--muted-foreground));
 }
 
 .muted {
   margin: 0;
   color: hsl(var(--muted-foreground));
+  font-size: 0.9375rem;
+}
+
+.section {
+  padding-block: clamp(3rem, 8vw, 5.5rem);
+}
+
+.section-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin-bottom: 2.5rem;
+}
+
+a {
+  color: hsl(var(--primary));
+}
+
+/* Pill used for status and trust markers. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  padding: 0.3125rem 0.75rem;
+  border: var(--hairline);
+  border-radius: 9999px;
+  background: hsl(var(--card));
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pill strong {
+  color: hsl(var(--foreground));
+  font-weight: 700;
+}
+
+/* ── Site chrome ────────────────────────────────────────────────────────── */
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.625rem 1rem;
+  border-radius: 0 0 var(--radius) 0;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  border-bottom: var(--hairline);
+  background: hsl(var(--background) / 0.8);
+  backdrop-filter: blur(var(--theme-surface-blur, 8px));
+}
+
+.site-header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  height: 3.75rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  color: hsl(var(--foreground));
+}
+
+.brand img {
+  width: 1.625rem;
+  height: 1.625rem;
+  border-radius: 0.5rem;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.site-nav a {
+  padding: 0.4375rem 0.6875rem;
+  border-radius: calc(var(--radius) * 0.75);
+  color: hsl(var(--muted-foreground));
   font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s ease, background-color 0.15s ease;
 }
 
-.download h1 {
-  font-size: 2rem;
+.site-nav a:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
 }
 
-.download code {
+.nav-desktop {
+  display: none;
+}
+
+@media (min-width: 48rem) {
+  .nav-desktop {
+    display: flex;
+  }
+}
+
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: var(--hairline);
+  border-radius: calc(var(--radius) * 0.75);
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.icon-button:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.icon-button:focus-visible,
+.site-nav a:focus-visible,
+.brand:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* The two glyphs swap with the resolved theme rather than with a JS branch, so
+   the toggle is correct on first paint. */
+.theme-toggle .icon-dark {
+  display: none;
+}
+
+:root[data-mode="dark"] .theme-toggle .icon-dark,
+.dark .theme-toggle .icon-dark {
+  display: block;
+}
+
+:root[data-mode="dark"] .theme-toggle .icon-light,
+.dark .theme-toggle .icon-light {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-mode="light"]) .theme-toggle .icon-dark {
+    display: block;
+  }
+  :root:not([data-mode="light"]) .theme-toggle .icon-light {
+    display: none;
+  }
+}
+
+.site-footer {
+  border-top: var(--hairline);
+  padding-block: 2.5rem;
+  background: hsl(var(--muted) / 0.35);
+}
+
+.footer-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footer-links a {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  color: hsl(var(--foreground));
+  text-decoration: underline;
+}
+
+.footer-note {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* ── Hero ───────────────────────────────────────────────────────────────── */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding-block: clamp(3rem, 9vw, 6rem);
+  border-bottom: var(--hairline);
+}
+
+/* Two soft lights behind the fold instead of a flat block of colour. */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: -30% -10% auto;
+  height: 60rem;
+  background: radial-gradient(38rem 24rem at 22% 18%, hsl(var(--primary) / 0.18), transparent 70%),
+    radial-gradient(
+      30rem 20rem at 82% 8%,
+      hsl(var(--secondary-400, var(--secondary)) / 0.16),
+      transparent 70%
+    );
+  pointer-events: none;
+}
+
+.hero-grid {
+  position: relative;
+  display: grid;
+  gap: clamp(2.5rem, 6vw, 4rem);
+  align-items: center;
+}
+
+@media (min-width: 62rem) {
+  .hero-grid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  }
+}
+
+.hero-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.hero-title {
+  margin: 0;
+  font-size: clamp(2.25rem, 5.6vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.hero-title .accent {
+  background: linear-gradient(
+    100deg,
+    hsl(var(--primary)) 0%,
+    hsl(var(--primary-400, var(--primary))) 45%,
+    hsl(var(--secondary-500, var(--secondary))) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-lead {
+  margin: 0;
+  max-width: 40ch;
+  font-size: clamp(1.0625rem, 1.6vw, 1.25rem);
+  color: hsl(var(--muted-foreground));
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.trust-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+/* ── Product mock ───────────────────────────────────────────────────────── */
+
+.mock {
+  position: relative;
+  width: 100%;
+  max-width: 24rem;
+  margin-inline: auto;
+  border: var(--hairline);
+  border-radius: calc(var(--radius) * 2);
+  background: hsl(var(--card));
+  box-shadow: 0 1px 2px hsl(var(--foreground) / 0.04), 0 24px 48px -24px
+    hsl(var(--foreground) / 0.28);
+}
+
+.mock-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  border-bottom: var(--hairline);
+  /* The frame cannot clip its children — the notification deliberately hangs
+     off the corner — so the top bar rounds itself. */
+  border-radius: calc(var(--radius) * 2 - 1px) calc(var(--radius) * 2 - 1px) 0 0;
+  background: hsl(var(--muted) / 0.5);
+}
+
+.mock-bar img {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.375rem;
+}
+
+.mock-bar-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.mock-bar-dots {
+  margin-left: auto;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.mock-bar-dots span {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: hsl(var(--border));
+}
+
+.mock-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 0.875rem;
+}
+
+.mock-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border: var(--hairline);
+  border-radius: calc(var(--radius) * 0.75);
+  background: hsl(var(--background));
+  color: hsl(var(--muted-foreground));
+  font-size: 0.8125rem;
+}
+
+.mock-chips {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.mock-chip {
+  padding: 0.1875rem 0.5rem;
+  border: var(--hairline);
+  border-radius: 9999px;
+  background: hsl(var(--muted) / 0.6);
+  color: hsl(var(--muted-foreground));
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+.mock-chip[data-active] {
+  border-color: hsl(var(--primary) / 0.4);
+  background: hsl(var(--primary) / 0.12);
+  color: hsl(var(--primary));
+}
+
+.mock-label {
+  margin: 0.25rem 0 0;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.mock-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.625rem 0.6875rem 0.625rem 0.8125rem;
+  overflow: hidden;
+  border: var(--hairline);
+  border-radius: calc(var(--radius) * 1.1);
+  background: hsl(var(--card));
+}
+
+.mock-item::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: hsl(var(--primary));
+}
+
+.mock-item[data-state="overdue"]::before {
+  background: hsl(var(--destructive));
+}
+
+.mock-check {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: 0 0 auto;
+  border: var(--hairline);
+  border-radius: calc(var(--radius) * 0.75);
+  color: hsl(var(--muted-foreground));
+}
+
+.mock-title {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.mock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1875rem;
+  padding: 0.0625rem 0.4375rem;
+  border-radius: 9999px;
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  font-size: 0.5625rem;
+  font-weight: 700;
+}
+
+.mock-when {
+  display: block;
+  font-size: 0.6875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.mock-when strong {
+  color: hsl(var(--foreground) / 0.75);
+}
+
+.mock-item[data-state="overdue"] .mock-when strong {
+  color: hsl(var(--destructive));
+}
+
+/* The notification toast that floats off the popup's corner. */
+.mock-toast {
+  position: absolute;
+  right: -0.75rem;
+  bottom: -1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  width: 15rem;
+  padding: 0.6875rem 0.75rem;
+  border: var(--hairline);
+  border-radius: calc(var(--radius) * 1.25);
+  background: hsl(var(--popover));
+  box-shadow: 0 18px 32px -18px hsl(var(--foreground) / 0.45);
+}
+
+@media (min-width: 30rem) {
+  .mock-toast {
+    right: -2.25rem;
+  }
+}
+
+.mock-toast-icon {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: 0 0 auto;
+  border-radius: 0.5rem;
+  background: hsl(var(--primary) / 0.14);
+  color: hsl(var(--primary));
+}
+
+.mock-toast-title {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.mock-toast-body {
+  display: block;
+  font-size: 0.6875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* ── Cards, steps, FAQ ──────────────────────────────────────────────────── */
+
+.card-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.375rem;
+  border: var(--hairline);
+  border-radius: calc(var(--radius) * 1.5);
+  background: hsl(var(--card));
+  transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.tile:hover {
+  border-color: hsl(var(--ring) / 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -18px hsl(var(--foreground) / 0.4);
+}
+
+.tile-icon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: calc(var(--radius) * 0.9);
+  background: hsl(var(--primary) / 0.12);
+  color: hsl(var(--primary));
+}
+
+.tile-title {
+  margin: 0.25rem 0 0;
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.tile p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: hsl(var(--muted-foreground));
+}
+
+.steps {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  counter-reset: step;
+}
+
+.step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 2.75rem;
+}
+
+.step::before {
+  counter-increment: step;
+  content: counter(step);
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.step h3 {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 650;
+}
+
+.step p {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.band {
+  border-block: var(--hairline);
+  background: linear-gradient(hsl(var(--muted) / 0.5), hsl(var(--muted) / 0.5)),
+    radial-gradient(30rem 16rem at 15% 0%, hsl(var(--primary) / 0.12), transparent 70%);
+}
+
+.permissions {
+  display: grid;
+  gap: 0.625rem;
+}
+
+.permission {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.875rem 1rem;
+  border: var(--hairline);
+  border-radius: calc(var(--radius) * 1.25);
+  background: hsl(var(--card));
+}
+
+.permission code {
+  flex: 0 0 auto;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background: hsl(var(--primary) / 0.12);
+  color: hsl(var(--primary));
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.permission p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.faq {
+  display: grid;
+  gap: 0.625rem;
+  max-width: 46rem;
+}
+
+.faq details {
+  border: var(--hairline);
+  border-radius: calc(var(--radius) * 1.25);
+  background: hsl(var(--card));
+  overflow: hidden;
+}
+
+.faq summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.125rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq summary::after {
+  content: "+";
+  flex: 0 0 auto;
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1;
+  color: hsl(var(--muted-foreground));
+}
+
+.faq details[open] summary::after {
+  content: "−";
+}
+
+.faq summary:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: -2px;
+}
+
+.faq p {
+  margin: 0;
+  padding: 0 1.125rem 1.125rem;
+  font-size: 0.9375rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: clamp(2.5rem, 6vw, 3.5rem) 1.5rem;
+  border: var(--hairline);
+  border-radius: calc(var(--radius) * 2);
+  background: linear-gradient(hsl(var(--card)), hsl(var(--card))),
+    radial-gradient(24rem 14rem at 50% 0%, hsl(var(--primary) / 0.16), transparent 70%);
+  text-align: center;
+}
+
+/* ── Download page ──────────────────────────────────────────────────────── */
+
+.page-head {
+  padding-block: clamp(2.5rem, 6vw, 4rem) 1rem;
+}
+
+.page-title {
+  margin: 0 0 0.5rem;
+  font-size: clamp(2rem, 4.5vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.install-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+}
+
+.install-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 1.5rem;
+  border: var(--hairline);
+  border-radius: calc(var(--radius) * 1.5);
+  background: hsl(var(--card));
+}
+
+.install-card h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.install-card ol {
+  margin: 0;
+  padding-left: 1.125rem;
+  display: grid;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.install-card li::marker {
+  color: hsl(var(--primary));
+  font-weight: 700;
+}
+
+code {
   padding: 0.125rem 0.375rem;
   border-radius: calc(var(--radius) * 0.5);
   background: hsl(var(--muted));
+  color: hsl(var(--foreground));
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: 0.875em;
+}
+
+.note {
+  margin: 0;
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.125rem;
+  border: var(--border-width, 1px) dashed hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.25);
+  background: hsl(var(--muted) / 0.4);
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile,
+  .site-nav a,
+  .icon-button {
+    transition: none;
+  }
+  .tile:hover {
+    transform: none;
+  }
 }

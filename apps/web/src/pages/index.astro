@@ -1,94 +1,233 @@
 ---
-import { listReminders } from '@sticky-reminder/core';
+import PopupMock from '../components/PopupMock.astro';
 import Layout from '../layouts/Layout.astro';
-
-const exampleReminders = listReminders([
-  {
-    id: '1',
-    title: 'Daily standup',
-    body: 'Join the team meeting',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    scheduledAt: new Date(Date.now() + 3600_000).toISOString(),
-    repeat: 'daily',
-    completed: false,
-  },
-  {
-    id: '2',
-    title: 'Review PRs',
-    body: 'Check open pull requests',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    scheduledAt: new Date(Date.now() + 7200_000).toISOString(),
-    repeat: 'none',
-    completed: false,
-  },
-]);
+import { url, REPO_URL } from '../lib/site';
 
 const features = [
-  { icon: 'check', title: 'One click', body: 'Create reminders without leaving the page.' },
-  { icon: 'bell', title: 'Native notifications', body: 'Your browser tells you when it is time.' },
-  { icon: 'refresh-cw', title: 'Daily or weekly', body: 'Repeating reminders keep coming back.' },
+  {
+    icon: 'zap',
+    title: 'One click, no context switch',
+    body: 'Open the popup, type it, pick a time. No app to switch to, no tab to keep open, no account to make.',
+  },
+  {
+    icon: 'bell',
+    title: 'Notifications your OS shows',
+    body: 'Reminders fire through the browser’s own notification system, so they reach you even when the tab that created them is long gone.',
+  },
+  {
+    icon: 'refresh-cw',
+    title: 'Daily and weekly repeats',
+    body: 'A repeating reminder rolls itself forward the moment it fires — and skips the periods it slept through instead of firing a backlog.',
+  },
+  {
+    icon: 'search',
+    title: 'Overdue at a glance',
+    body: 'Late reminders turn red and say how late. Search and filter the full list from the options page.',
+  },
+  {
+    icon: 'lock',
+    title: 'Stays on your machine',
+    body: 'Everything lives in your browser’s local storage. No server, no sync, no analytics, no third-party requests.',
+  },
+  {
+    icon: 'code',
+    title: 'Open source, MIT',
+    body: 'Read every line, build it yourself, or fork it. Three permissions, no minified mystery bundle.',
+  },
+];
+
+const steps = [
+  {
+    title: 'Install and pin it',
+    body: 'Grab the build from the releases page and load it in your browser. Pin the icon so the popup is one click away.',
+  },
+  {
+    title: 'Write the reminder',
+    body: 'A title, an optional note, and a time — or one of the shortcuts: in an hour, this evening, tomorrow at nine.',
+  },
+  {
+    title: 'Get told, on time',
+    body: 'The reminder fires as a native notification. Click it to jump straight to that reminder in the full list.',
+  },
+];
+
+const permissions = [
+  {
+    name: 'alarms',
+    body: 'Schedules the moment a reminder is due. Without it nothing can fire while the popup is closed.',
+  },
+  {
+    name: 'notifications',
+    body: 'Shows the notification when the time comes. That is the whole product.',
+  },
+  {
+    name: 'storage',
+    body: 'Keeps your reminders in this browser’s local storage. Local only — there is nothing to sync to.',
+  },
+];
+
+const faq = [
+  {
+    q: 'Do my reminders leave my computer?',
+    a: 'No. They are written to your browser’s local storage and read back from there. The extension makes no network requests at all, which is also why there is no cross-device sync.',
+  },
+  {
+    q: 'Does it work when the browser is closed?',
+    a: 'No — reminders fire while your browser is running. If one comes due while the browser is shut, it shows as overdue the next time you open it, and repeating reminders pick up at their next occurrence rather than firing every missed one.',
+  },
+  {
+    q: 'Which browsers are supported?',
+    a: 'Chrome, Edge and any other Chromium browser through the MV3 build, plus Firefox through its own build. Both are attached to every release.',
+  },
+  {
+    q: 'Is it on the Chrome Web Store?',
+    a: 'Not yet. For now you install the build from the releases page, which takes about a minute — the download page walks through it.',
+  },
+  {
+    q: 'What happens to a repeating reminder I never tick off?',
+    a: 'It moves to its next occurrence each time it fires. Leave a daily one alone for a month and it will not fire thirty times: it jumps to the next occurrence from now.',
+  },
 ];
 ---
 
-<Layout title="Sticky Reminder — Remember what matters">
-  <main class="landing" and-layout="vertical gap:xxl p:lg">
-    <section class="hero" and-layout="vertical align:center gap:sm p-y:xxl" and-motion="fade-in">
-      <h1 class="hero-title">Sticky Reminder</h1>
-      <p class="lead">Browser reminders that stick with you.</p>
-      <and-button href="/download" size="lg">Install extension</and-button>
-    </section>
+<Layout>
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <span class="pill" and-motion="fade-in">
+          <and-icon name="star" size="12"></and-icon>
+          v1.0 · Free and open source
+        </span>
 
-    <section and-layout="vertical gap:md">
-      <h2 class="section-title">Features</h2>
-      <div and-layout="horizontal wrap:wrap gap:md">
+        <h1 class="hero-title">
+          Reminders that <span class="accent">actually reach you</span>.
+        </h1>
+
+        <p class="hero-lead">
+          Sticky Reminder lives in your browser toolbar. Write a reminder in a click, and get a
+          native notification when it is due — once, every day, or every week.
+        </p>
+
+        <div class="hero-actions">
+          <and-button href={url('/download')} size="lg">Install the extension</and-button>
+          <and-button href={REPO_URL} variant="outline" size="lg" rel="noreferrer">
+            View the source
+          </and-button>
+        </div>
+
+        <div class="trust-row">
+          <span class="pill"><and-icon name="lock" size="12"></and-icon> No account</span>
+          <span class="pill"><and-icon name="check" size="12"></and-icon> No tracking</span>
+          <span class="pill"><and-icon name="code" size="12"></and-icon> MIT licensed</span>
+        </div>
+      </div>
+
+      <PopupMock />
+    </div>
+  </section>
+
+  <section class="section" id="how-it-works">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">How it works</p>
+        <h2 class="section-title">Three steps, then forget about it</h2>
+        <p class="section-lead">
+          The whole point is not having to remember. Set it once and let the browser carry it.
+        </p>
+      </div>
+
+      <div class="steps">
+        {
+          steps.map((step) => (
+            <article class="step" and-motion="fade-in-up">
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Features</p>
+        <h2 class="section-title">Small on purpose, complete on purpose</h2>
+        <p class="section-lead">
+          Everything a reminder needs and nothing that turns it into another inbox to manage.
+        </p>
+      </div>
+
+      <div class="card-grid">
         {
           features.map((feature) => (
-            <and-card class="feature" padded and-motion="slide-in-up">
-              <and-icon name={feature.icon} size="20" />
-              <h3 class="feature-title">{feature.title}</h3>
-              <p class="muted">{feature.body}</p>
-            </and-card>
+            <article class="tile" and-motion="fade-in-up">
+              <span class="tile-icon">
+                <and-icon name={feature.icon} size="20" />
+              </span>
+              <h3 class="tile-title">{feature.title}</h3>
+              <p>{feature.body}</p>
+            </article>
           ))
         }
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section and-layout="vertical gap:md">
-      <h2 class="section-title">Example reminders</h2>
-      <div and-layout="vertical gap:xs">
+  <section class="section band" id="privacy">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Privacy</p>
+        <h2 class="section-title">Three permissions, and here is what each one is for</h2>
+        <p class="section-lead">
+          An extension that watches your browsing does not need to say this. This one does not
+          request host permissions at all, so it cannot read a single page you visit.
+        </p>
+      </div>
+
+      <div class="permissions">
         {
-          exampleReminders.map((reminder) => (
-            <and-card padded and-motion="fade-in">
-              <div and-layout="horizontal justify:between align:center gap:sm">
-                <div and-layout="vertical gap:xxxs">
-                  <strong>{reminder.title}</strong>
-                  <span class="muted">{reminder.body}</span>
-                </div>
-                {reminder.repeat !== 'none' && (
-                  <and-badge variant="secondary">
-                    <and-icon name="refresh-cw" size="12" />
-                    {reminder.repeat === 'daily' ? 'Daily' : 'Weekly'}
-                  </and-badge>
-                )}
-              </div>
-            </and-card>
+          permissions.map((permission) => (
+            <div class="permission" and-motion="fade-in">
+              <code>{permission.name}</code>
+              <p>{permission.body}</p>
+            </div>
           ))
         }
       </div>
-    </section>
-  </main>
+    </div>
+  </section>
 
-  <script>
-    import '@andersseen/web-components/components/and-badge.js';
-    import '@andersseen/web-components/components/and-button.js';
-    import '@andersseen/web-components/components/and-card.js';
-    import '@andersseen/web-components/components/and-icon.js';
-    import { MotionController } from '@andersseen/motion';
-    import { registerStickyIcons } from '@sticky-reminder/ui';
+  <section class="section" id="faq">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">FAQ</p>
+        <h2 class="section-title">Questions worth answering up front</h2>
+      </div>
 
-    registerStickyIcons();
-    new MotionController().scan();
-  </script>
+      <div class="faq">
+        {
+          faq.map((entry) => (
+            <details>
+              <summary>{entry.q}</summary>
+              <p>{entry.a}</p>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="cta" and-motion="fade-in">
+        <h2 class="section-title">Put it in your toolbar</h2>
+        <p class="section-lead" style="text-align: center;">
+          A minute to install, and the next thing you would have forgotten will find you instead.
+        </p>
+        <and-button href={url('/download')} size="lg">Install the extension</and-button>
+      </div>
+    </div>
+  </section>
 </Layout>
