@@ -7,13 +7,15 @@
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <main class="popup">
-      <sr-card heading="New reminder">
+    <main class="popup" and-layout="vertical gap:md p:md">
+      <and-card padded>
+        <h1 class="heading" id="form-heading">New reminder</h1>
         <sr-reminder-form submit-label="Remind me"></sr-reminder-form>
-      </sr-card>
-      <section class="list" id="list">
-        <h2>Upcoming</h2>
-        <div id="reminders"></div>
+      </and-card>
+
+      <section and-layout="vertical gap:xs">
+        <h2 class="heading">Upcoming</h2>
+        <div id="reminders" and-layout="vertical gap:xs"></div>
       </section>
     </main>
     <script type="module" src="./main.ts"></script>

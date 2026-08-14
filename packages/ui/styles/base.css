@@ -1,14 +1,37 @@
+/* Design tokens for the Andersseen components (--primary, --radius, …). The
+   components inline their own Tailwind subset into their shadow roots, so this
+   is the only global stylesheet they need — custom properties inherit through
+   the shadow boundary. */
+@import "@andersseen/web-components/tokens.css";
+
+/* Attribute-driven layout and typography: [and-layout~="vertical gap:md"]. */
+@import "@andersseen/layout/dist/layout.css";
+
+/* Keyframes behind [and-motion]. */
+@import "@andersseen/motion/style.css";
+
 :root {
-  --sr-primary: #4f46e5;
-  --sr-text: #111827;
-  --sr-border: #d1d5db;
-  --sr-surface: #ffffff;
-  --sr-bg: #f3f4f6;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* Native controls (the datetime picker, spinners, scrollbars) render from the
+     UA palette, so they need telling which scheme the tokens resolved to. */
+  color-scheme: light dark;
 }
 
 body {
   margin: 0;
-  background: var(--sr-bg);
-  color: var(--sr-text);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+}
+
+/* Announcements for screen readers that carry no visual weight. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

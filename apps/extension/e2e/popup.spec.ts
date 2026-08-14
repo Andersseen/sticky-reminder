@@ -1,9 +1,184 @@
-import { expect, test } from '@playwright/test';
+import { fileURLToPath } from 'node:url';
+import { type BrowserContext, type Page, chromium, expect, test } from '@playwright/test';
 
-test('popup renders the form', async ({ page }) => {
-  await page.goto('https://example.com');
-  await page.evaluate(() => {
-    // Placeholder: extension popup pages can be loaded by path in a real test runner.
+const EXTENSION_PATH = fileURLToPath(new URL('../.output/chrome-mv3', import.meta.url));
+
+const REPEAT_LABELS = {
+  none: 'Does not repeat',
+  daily: 'Every day',
+  weekly: 'Every week',
+} as const;
+
+let context: BrowserContext;
+let extensionId: string;
+
+// One browser for the whole file: launching a persistent context per test is
+// slow, and they share the extension's storage anyway.
+test.describe.configure({ mode: 'serial' });
+
+test.beforeAll(async () => {
+  test.setTimeout(120_000);
+
+  // MV3 service workers only run in a persistent context with the unpacked
+  // build, and only on the full Chromium channel — the default download is
+  // headless-shell, which cannot load extensions at all.
+  context = await chromium.launchPersistentContext('', {
+    channel: 'chromium',
+    args: [`--disable-extensions-except=${EXTENSION_PATH}`, `--load-extension=${EXTENSION_PATH}`],
   });
-  await expect(page).toHaveTitle(/Example/);
+
+  const worker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
+  extensionId = new URL(worker.url()).host;
+});
+
+test.afterAll(async () => {
+  await context?.close();
+});
+
+async function openPopup(): Promise<Page> {
+  const page = await context.newPage();
+  await page.goto(`chrome-extension://${extensionId}/popup.html`);
+  // Alarms outlive storage and the page, so both need clearing between tests.
+  await page.evaluate(async () => {
+    await chrome.storage.local.clear();
+    await chrome.alarms.clearAll();
+  });
+  await page.reload();
+  return page;
+}
+
+/**
+ * Fills the form. The fields sit across nested shadow roots, and `and-select`
+ * is a custom combobox rather than a native `<select>`.
+ */
+async function fillReminder(
+  page: Page,
+  title: string,
+  repeat: keyof typeof REPEAT_LABELS,
+  minutesFromNow = 60,
+) {
+  const form = page.locator('sr-reminder-form');
+  await form.locator('and-input[name="title"] input').fill(title);
+
+  const when = new Date(Date.now() + minutesFromNow * 60_000);
+  const local = new Date(when.getTime() - when.getTimezoneOffset() * 60_000);
+  await form.locator('input[name="scheduledAt"]').fill(local.toISOString().slice(0, 16));
+
+  const combobox = form.locator('and-select[name="repeat"] [role="combobox"]');
+  await combobox.click();
+  await page.locator('[role="option"]', { hasText: REPEAT_LABELS[repeat] }).click();
+
+  // and-select@0.4.1 leaves the listbox open after a pick — aria-expanded stays
+  // "true" and Escape does not dismiss it — and the overlay then swallows
+  // clicks on the rest of the form. Toggle it shut through the trigger.
+  await combobox.click();
+  await expect(combobox).toHaveAttribute('aria-expanded', 'false');
+}
+
+async function submitForm(page: Page) {
+  await page.locator('sr-reminder-form and-button[type="submit"] button').click();
+}
+
+test('the popup loads with the design system applied', async () => {
+  const page = await openPopup();
+
+  await expect(page.locator('sr-reminder-form')).toBeVisible();
+  await expect(page.locator('#reminders')).toContainText('No reminders yet');
+
+  // The tokens stylesheet resolved if the button picked up a themed background.
+  const submit = page.locator('sr-reminder-form and-button[type="submit"] button');
+  await expect(submit).toBeVisible();
+  await expect(submit).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+
+  await page.close();
+});
+
+test('the form refuses an empty submission', async () => {
+  const page = await openPopup();
+
+  await submitForm(page);
+
+  await expect(page.locator('#reminders')).toContainText('No reminders yet');
+  expect(await page.evaluate(() => chrome.alarms.getAll())).toHaveLength(0);
+
+  await page.close();
+});
+
+test('creating a reminder stores it and schedules an alarm', async () => {
+  const page = await openPopup();
+  await fillReminder(page, 'Water the plants', 'daily');
+  await submitForm(page);
+
+  const item = page.locator('sr-reminder-item').first();
+  await expect(item).toContainText('Water the plants');
+  await expect(item.locator('and-badge')).toContainText('Daily');
+
+  const alarms = await page.evaluate(() => chrome.alarms.getAll());
+  expect(alarms).toHaveLength(1);
+  expect(alarms[0].name).toMatch(/^reminder-/);
+  expect(alarms[0].scheduledTime).toBeGreaterThan(Date.now());
+
+  await page.close();
+});
+
+test('deleting a reminder clears its alarm too', async () => {
+  const page = await openPopup();
+  await fillReminder(page, 'Temporary', 'none');
+  await submitForm(page);
+  await expect(page.locator('sr-reminder-item')).toHaveCount(1);
+
+  await page.locator('sr-reminder-item [aria-label="Delete reminder"] button').click();
+
+  await expect(page.locator('#reminders')).toContainText('No reminders yet');
+  expect(await page.evaluate(() => chrome.alarms.getAll())).toHaveLength(0);
+
+  await page.close();
+});
+
+test('a fired repeating alarm reschedules instead of completing', async () => {
+  const page = await openPopup();
+  await fillReminder(page, 'Standup', 'daily');
+  await submitForm(page);
+  await expect(page.locator('sr-reminder-item').first()).toContainText('Standup');
+
+  // Bring the due date forward to a moment ago, so firing the alarm reproduces
+  // a reminder coming due rather than one triggered an hour early — those are
+  // different cases, and only the first should roll the date forward.
+  const before = await page.evaluate(async () => {
+    const store = await chrome.storage.local.get('reminders');
+    const reminders = store.reminders as { id: string; scheduledAt: string }[];
+    reminders[0].scheduledAt = new Date(Date.now() - 1000).toISOString();
+    await chrome.storage.local.set({ reminders });
+    return reminders[0];
+  });
+
+  const worker = context.serviceWorkers()[0];
+  await worker.evaluate(
+    (name) => chrome.alarms.create(name, { when: Date.now() }),
+    `reminder-${before.id}`,
+  );
+
+  const readReminder = () =>
+    page.evaluate(async () => {
+      const store = await chrome.storage.local.get('reminders');
+      return (store.reminders as { scheduledAt: string; completed: boolean }[])[0];
+    });
+
+  // The background awaits notifications.create before advancing, so a rolled
+  // forward date also means the notification went out.
+  await expect
+    .poll(async () => (await readReminder()).scheduledAt, {
+      timeout: 20_000,
+      intervals: [250],
+      message: 'the reminder never rolled forward to its next occurrence',
+    })
+    .not.toBe(before.scheduledAt);
+
+  const after = await readReminder();
+  expect(after.completed).toBe(false);
+  expect(new Date(after.scheduledAt).getTime() - new Date(before.scheduledAt).getTime()).toBe(
+    24 * 60 * 60 * 1000,
+  );
+
+  await page.close();
 });

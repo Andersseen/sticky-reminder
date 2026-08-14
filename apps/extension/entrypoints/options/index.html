@@ -4,12 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sticky Reminder Options</title>
+    <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <main class="options">
-      <h1>Sticky Reminder Options</h1>
-      <p>All reminders are stored locally in your browser.</p>
-      <div id="reminders"></div>
+    <main class="options" and-layout="vertical gap:lg p:lg">
+      <header and-layout="vertical gap:xxs">
+        <h1 class="title" and-text="weight:semibold">Sticky Reminder</h1>
+        <p class="muted">All reminders are stored locally in your browser.</p>
+      </header>
+      <div id="reminders" and-layout="vertical gap:xs"></div>
     </main>
     <script type="module" src="./main.ts"></script>
   </body>

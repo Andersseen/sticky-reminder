@@ -1,6 +1,3 @@
-export { SrButton } from './components/button';
-export { SrInput } from './components/input';
-export { SrTextarea } from './components/textarea';
-export { SrCard } from './components/card';
-export { SrSwitch } from './components/switch';
+export { registerStickyIcons } from './icons';
 export { SrReminderForm, type ReminderFormData } from './components/reminder-form';
+export { SrReminderItem } from './components/reminder-item';

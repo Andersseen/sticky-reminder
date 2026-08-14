@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="512" height="512">
+  <rect width="128" height="128" rx="28" fill="#4f46e5" />
+  <!-- Sticky note with a folded bottom-right corner -->
+  <path
+    d="M36 26h56a6 6 0 0 1 6 6v42L72 100H36a6 6 0 0 1-6-6V32a6 6 0 0 1 6-6z"
+    fill="#ffffff"
+  />
+  <path d="M98 74 72 100V80a6 6 0 0 1 6-6z" fill="#c7d2fe" />
+  <!-- Note lines -->
+  <rect x="44" y="45" width="40" height="7" rx="3.5" fill="#4f46e5" />
+  <rect x="44" y="62" width="26" height="7" rx="3.5" fill="#a5b4fc" />
+</svg>

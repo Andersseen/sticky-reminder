@@ -1,3 +1,5 @@
+export type RepeatInterval = 'none' | 'daily' | 'weekly';
+
 export interface Reminder {
   id: string;
   title: string;
@@ -5,7 +7,7 @@ export interface Reminder {
   createdAt: string;
   updatedAt: string;
   scheduledAt: string;
-  repeat: 'none' | 'daily' | 'weekly';
+  repeat: RepeatInterval;
   completed: boolean;
 }
 
