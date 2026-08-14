@@ -14,6 +14,9 @@
     "clean": "rm -rf .wxt dist .output"
   },
   "dependencies": {
+    "@andersseen/layout": "^0.0.1",
+    "@andersseen/motion": "^0.2.0",
+    "@andersseen/web-components": "^0.4.1",
     "@sticky-reminder/core": "workspace:*",
     "@sticky-reminder/ui": "workspace:*"
   },

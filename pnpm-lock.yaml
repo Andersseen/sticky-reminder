@@ -32,6 +32,15 @@ importers:
 
   apps/extension:
     dependencies:
+      '@andersseen/layout':
+        specifier: ^0.0.1
+        version: 0.0.1
+      '@andersseen/motion':
+        specifier: ^0.2.0
+        version: 0.2.0
+      '@andersseen/web-components':
+        specifier: ^0.4.1
+        version: 0.4.1
       '@sticky-reminder/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -66,6 +75,15 @@ importers:
 
   apps/web:
     dependencies:
+      '@andersseen/layout':
+        specifier: ^0.0.1
+        version: 0.0.1
+      '@andersseen/motion':
+        specifier: ^0.2.0
+        version: 0.2.0
+      '@andersseen/web-components':
+        specifier: ^0.4.1
+        version: 0.4.1
       '@sticky-reminder/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -104,6 +122,21 @@ importers:
 
   packages/ui:
     dependencies:
+      '@andersseen/icon':
+        specifier: ^0.1.1
+        version: 0.1.1
+      '@andersseen/layout':
+        specifier: ^0.0.1
+        version: 0.0.1
+      '@andersseen/motion':
+        specifier: ^0.2.0
+        version: 0.2.0
+      '@andersseen/web-components':
+        specifier: ^0.4.1
+        version: 0.4.1
+      '@sticky-reminder/core':
+        specifier: workspace:*
+        version: link:../core
       lit:
         specifier: ^3.2.0
         version: 3.3.3
@@ -144,6 +177,21 @@ packages:
     peerDependenciesMeta:
       rollup:
         optional: true
+
+  '@andersseen/headless-components@0.3.0':
+    resolution: {integrity: sha512-F8bcTryAfSLRlqlCOcPDV3Rw/gCaJ9dTFaxK5aWbiii8hp/BaTBVC4gcO9Rli7UVRRRt1BsP5O2Fc+eSKbs5Pg==}
+
+  '@andersseen/icon@0.1.1':
+    resolution: {integrity: sha512-Tkmjpx41TwjTpXOG0yal5D/j5KJSlq9NvHF2IknsA74uM/HC75P8adY2Y16sXBhjawQDm/dlXngco/3+bcyh1g==}
+
+  '@andersseen/layout@0.0.1':
+    resolution: {integrity: sha512-Cugg9xqRnD98jHeMfmaUtKF9ErIRM5NYnaNIHSssyXZBKv5mBbeRli2h6mMC/KR0s/XLOZSAeVhC+B+7yTLaYA==}
+
+  '@andersseen/motion@0.2.0':
+    resolution: {integrity: sha512-A7y+B93eqi4c3hOLlF7vyRXRgJaBPi89l9W+xk8n2daV2hFyS5PUn66zj7BiPp+7Giq7p6ffiKbtw5FC4ZnngQ==}
+
+  '@andersseen/web-components@0.4.1':
+    resolution: {integrity: sha512-boDXSKHq9FgJ+WSEOwLBWHj/yaYryyTs6ZIZL9hcBpKDOep13MIYIXvDtAlXl11C4PLfRYnRD7StzQBHquCVeQ==}
 
   '@asamuzakjp/css-color@6.0.7':
     resolution: {integrity: sha512-vC/bk1Lz7Tn/EfU9/apOTBk80/8dyGyWMowPoV1tJ52muDGsDqt2HPT2klrFUiY60MQmQv9q8yIht15JnBgDGw==}
@@ -1541,6 +1589,9 @@ packages:
 
   citty@0.1.6:
     resolution: {integrity: sha512-tskPPKEs8D2KPafUypv2gxwJP8h/OaJmC82QQGGDQcHvXX43xF2VDACcJVmZ0EuSxkpO9Kc4MlrA3q0+FG58AQ==}
+
+  class-variance-authority@0.7.1:
+    resolution: {integrity: sha512-Ka+9Trutv7G8M6WT6SeiRWz792K5qEqIGEGzXKhAE6xOWAY6pPH8U+9IY3oCMv6kqTmLsv7Xh/2w2RigkePMsg==}
 
   cli-boxes@3.0.0:
     resolution: {integrity: sha512-/lzGpEWL/8PfI0BmBOPRwp0c/wFNX1RdUML3jK/RcSBA9T8mZDdQpqYBKtCFTOfQbwPqWEOpjqW+Fnayc0969g==}
@@ -3175,6 +3226,9 @@ packages:
   symbol-tree@3.2.4:
     resolution: {integrity: sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==}
 
+  tailwind-merge@3.6.0:
+    resolution: {integrity: sha512-uxL7qAVQriqRQPAyK3pj66VqskWqoZ37PW94jwOTwNfq/z9oyu1V+eqrZqtR2+fCiXdYOZe/Modt8GtvqNzu+w==}
+
   tar@6.2.1:
     resolution: {integrity: sha512-DZ4yORTwrbTj/7MZYq2w+/ZFdI6OZ/f9SFHR+71gIVUZhOQPHzVCLpvRnPgyaMpfWxxk/4ONva3GQSyNIKRv6A==}
     engines: {node: '>=10'}
@@ -3778,6 +3832,23 @@ snapshots:
       yargs: 17.7.3
     optionalDependencies:
       rollup: 4.62.4
+
+  '@andersseen/headless-components@0.3.0': {}
+
+  '@andersseen/icon@0.1.1': {}
+
+  '@andersseen/layout@0.0.1': {}
+
+  '@andersseen/motion@0.2.0': {}
+
+  '@andersseen/web-components@0.4.1':
+    dependencies:
+      '@andersseen/headless-components': 0.3.0
+      '@andersseen/icon': 0.1.1
+      '@andersseen/motion': 0.2.0
+      class-variance-authority: 0.7.1
+      clsx: 2.1.1
+      tailwind-merge: 3.6.0
 
   '@asamuzakjp/css-color@6.0.7':
     dependencies:
@@ -4913,6 +4984,10 @@ snapshots:
   citty@0.1.6:
     dependencies:
       consola: 3.4.2
+
+  class-variance-authority@0.7.1:
+    dependencies:
+      clsx: 2.1.1
 
   cli-boxes@3.0.0: {}
 
@@ -6884,6 +6959,8 @@ snapshots:
       sax: 1.6.1
 
   symbol-tree@3.2.4: {}
+
+  tailwind-merge@3.6.0: {}
 
   tar@6.2.1:
     dependencies:

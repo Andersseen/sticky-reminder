@@ -1,4 +1,6 @@
 ---
+import '../styles/base.css';
+
 export interface Props {
   title?: string;
 }
@@ -12,7 +14,6 @@ const { title = 'Sticky Reminder' } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
-    <link rel="stylesheet" href="/styles/base.css" />
   </head>
   <body>
     <slot />

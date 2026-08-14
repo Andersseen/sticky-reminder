@@ -23,6 +23,11 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@andersseen/icon": "^0.1.1",
+    "@andersseen/layout": "^0.0.1",
+    "@andersseen/motion": "^0.2.0",
+    "@andersseen/web-components": "^0.4.1",
+    "@sticky-reminder/core": "workspace:*",
     "lit": "^3.2.0"
   },
   "devDependencies": {

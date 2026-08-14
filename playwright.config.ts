@@ -11,6 +11,13 @@ export default defineConfig({
     baseURL: 'http://localhost:4321',
     trace: 'on-first-retry',
   },
+  // Without this the suite hits a dead port: nothing else starts the site.
+  webServer: {
+    command: 'pnpm --filter @sticky-reminder/web dev',
+    url: 'http://localhost:4321',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
+  },
   projects: [
     {
       name: 'chromium',

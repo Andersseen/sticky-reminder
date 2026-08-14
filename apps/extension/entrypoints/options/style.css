@@ -1,0 +1,26 @@
+@import "@sticky-reminder/ui/styles";
+
+.options {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.muted {
+  margin: 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+}
+
+.empty {
+  padding: 1.5rem;
+  border: var(--border-width, 1px) dashed hsl(var(--border));
+  border-radius: calc(var(--radius) * 0.75);
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+  text-align: center;
+}

@@ -5,8 +5,12 @@ import { loadReminders } from './storage';
 
 export const ALARM_PREFIX = 'reminder-';
 
+export function alarmNameForId(id: string): string {
+  return `${ALARM_PREFIX}${id}`;
+}
+
 export function alarmNameFor(reminder: Reminder): string {
-  return `${ALARM_PREFIX}${reminder.id}`;
+  return alarmNameForId(reminder.id);
 }
 
 export async function scheduleReminderAlarm(reminder: Reminder): Promise<void> {
@@ -18,8 +22,8 @@ export async function scheduleReminderAlarm(reminder: Reminder): Promise<void> {
   });
 }
 
-export async function cancelReminderAlarm(reminder: Reminder): Promise<void> {
-  await browser.alarms.clear(alarmNameFor(reminder));
+export async function cancelReminderAlarm(id: string): Promise<void> {
+  await browser.alarms.clear(alarmNameForId(id));
 }
 
 /**

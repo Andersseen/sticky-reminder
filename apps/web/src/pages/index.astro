@@ -24,40 +24,71 @@ const exampleReminders = listReminders([
     completed: false,
   },
 ]);
+
+const features = [
+  { icon: 'check', title: 'One click', body: 'Create reminders without leaving the page.' },
+  { icon: 'bell', title: 'Native notifications', body: 'Your browser tells you when it is time.' },
+  { icon: 'refresh-cw', title: 'Daily or weekly', body: 'Repeating reminders keep coming back.' },
+];
 ---
 
 <Layout title="Sticky Reminder — Remember what matters">
-  <main class="landing">
-    <section class="hero">
-      <h1>Sticky Reminder</h1>
-      <p>Browser reminders that stick with you.</p>
-      <a href="/download" class="cta">
-        <sr-button>Install extension</sr-button>
-      </a>
+  <main class="landing" and-layout="vertical gap:xxl p:lg">
+    <section class="hero" and-layout="vertical align:center gap:sm p-y:xxl" and-motion="fade-in">
+      <h1 class="hero-title">Sticky Reminder</h1>
+      <p class="lead">Browser reminders that stick with you.</p>
+      <and-button href="/download" size="lg">Install extension</and-button>
     </section>
 
-    <section class="features">
-      <h2>Features</h2>
-      <ul>
-        <li>Create reminders in one click</li>
-        <li>Native browser notifications</li>
-        <li>Local storage, no account required</li>
-      </ul>
+    <section and-layout="vertical gap:md">
+      <h2 class="section-title">Features</h2>
+      <div and-layout="horizontal wrap:wrap gap:md">
+        {
+          features.map((feature) => (
+            <and-card class="feature" padded and-motion="slide-in-up">
+              <and-icon name={feature.icon} size="20" />
+              <h3 class="feature-title">{feature.title}</h3>
+              <p class="muted">{feature.body}</p>
+            </and-card>
+          ))
+        }
+      </div>
     </section>
 
-    <section class="preview">
-      <h2>Example reminders</h2>
-      {exampleReminders.map((reminder) => (
-        <sr-card heading={reminder.title}>
-          <p>{reminder.body}</p>
-          <p>{new Date(reminder.scheduledAt).toLocaleString()}</p>
-        </sr-card>
-      ))}
+    <section and-layout="vertical gap:md">
+      <h2 class="section-title">Example reminders</h2>
+      <div and-layout="vertical gap:xs">
+        {
+          exampleReminders.map((reminder) => (
+            <and-card padded and-motion="fade-in">
+              <div and-layout="horizontal justify:between align:center gap:sm">
+                <div and-layout="vertical gap:xxxs">
+                  <strong>{reminder.title}</strong>
+                  <span class="muted">{reminder.body}</span>
+                </div>
+                {reminder.repeat !== 'none' && (
+                  <and-badge variant="secondary">
+                    <and-icon name="refresh-cw" size="12" />
+                    {reminder.repeat === 'daily' ? 'Daily' : 'Weekly'}
+                  </and-badge>
+                )}
+              </div>
+            </and-card>
+          ))
+        }
+      </div>
     </section>
   </main>
 
   <script>
-    import '@sticky-reminder/ui';
-    import '@sticky-reminder/ui/styles';
+    import '@andersseen/web-components/components/and-badge.js';
+    import '@andersseen/web-components/components/and-button.js';
+    import '@andersseen/web-components/components/and-card.js';
+    import '@andersseen/web-components/components/and-icon.js';
+    import { MotionController } from '@andersseen/motion';
+    import { registerStickyIcons } from '@sticky-reminder/ui';
+
+    registerStickyIcons();
+    new MotionController().scan();
   </script>
 </Layout>
