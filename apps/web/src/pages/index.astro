@@ -1,0 +1,63 @@
+---
+import { listReminders } from '@sticky-reminder/core';
+import Layout from '../layouts/Layout.astro';
+
+const exampleReminders = listReminders([
+  {
+    id: '1',
+    title: 'Daily standup',
+    body: 'Join the team meeting',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    scheduledAt: new Date(Date.now() + 3600_000).toISOString(),
+    repeat: 'daily',
+    completed: false,
+  },
+  {
+    id: '2',
+    title: 'Review PRs',
+    body: 'Check open pull requests',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    scheduledAt: new Date(Date.now() + 7200_000).toISOString(),
+    repeat: 'none',
+    completed: false,
+  },
+]);
+---
+
+<Layout title="Sticky Reminder — Remember what matters">
+  <main class="landing">
+    <section class="hero">
+      <h1>Sticky Reminder</h1>
+      <p>Browser reminders that stick with you.</p>
+      <a href="/download" class="cta">
+        <sr-button>Install extension</sr-button>
+      </a>
+    </section>
+
+    <section class="features">
+      <h2>Features</h2>
+      <ul>
+        <li>Create reminders in one click</li>
+        <li>Native browser notifications</li>
+        <li>Local storage, no account required</li>
+      </ul>
+    </section>
+
+    <section class="preview">
+      <h2>Example reminders</h2>
+      {exampleReminders.map((reminder) => (
+        <sr-card heading={reminder.title}>
+          <p>{reminder.body}</p>
+          <p>{new Date(reminder.scheduledAt).toLocaleString()}</p>
+        </sr-card>
+      ))}
+    </section>
+  </main>
+
+  <script>
+    import '@sticky-reminder/ui';
+    import '@sticky-reminder/ui/styles';
+  </script>
+</Layout>

@@ -1,0 +1,23 @@
+{
+  "name": "@sticky-reminder/web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sticky Reminder marketing site",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "lint": "tsc --noEmit && biome check .",
+    "clean": "rm -rf .astro dist .output"
+  },
+  "dependencies": {
+    "@sticky-reminder/core": "workspace:*",
+    "@sticky-reminder/ui": "workspace:*",
+    "astro": "^5.1.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "typescript": "^5.7.0"
+  }
+}

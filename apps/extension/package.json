@@ -1,0 +1,30 @@
+{
+  "name": "@sticky-reminder/extension",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sticky Reminder browser extension (WXT + Web Components)",
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build",
+    "zip": "wxt build --zip",
+    "lint": "tsc --noEmit && biome check .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "clean": "rm -rf .wxt dist .output"
+  },
+  "dependencies": {
+    "@sticky-reminder/core": "workspace:*",
+    "@sticky-reminder/ui": "workspace:*"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@playwright/test": "^1.49.0",
+    "@types/chrome": "^0.0.300",
+    "@vitest/browser": "^3.0.0",
+    "happy-dom": "^17.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0",
+    "wxt": "^0.19.0"
+  }
+}

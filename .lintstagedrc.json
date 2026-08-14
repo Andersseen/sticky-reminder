@@ -1,0 +1,3 @@
+{
+  "*.{js,ts,astro,json,md,yml,yaml}": ["biome check --write"]
+}

@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "strict": false,
+    "jsx": "preserve",
+    "outDir": "./.astro/types",
+    "rootDir": "./src",
+    "types": ["astro/client"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["dist", ".astro", ".output", "node_modules"]
+}

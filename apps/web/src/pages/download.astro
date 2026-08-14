@@ -1,0 +1,27 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Download Sticky Reminder">
+  <main class="download">
+    <h1>Download Sticky Reminder</h1>
+    <p>Choose your browser and follow the instructions.</p>
+
+    <section>
+      <h2>Chrome / Edge</h2>
+      <ol>
+        <li>Download the built extension from the releases page.</li>
+        <li>Open <code>chrome://extensions</code> and enable developer mode.</li>
+        <li>Drag and drop the ZIP file into the extensions page.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Firefox</h2>
+      <ol>
+        <li>Download the built extension from the releases page.</li>
+        <li>Open <code>about:debugging</code> and load the temporary add-on.</li>
+      </ol>
+    </section>
+  </main>
+</Layout>

@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./.wxt/types",
+    "rootDir": ".",
+    "types": ["chrome", "vitest/globals"]
+  },
+  "include": ["env.d.ts", "**/*.ts"],
+  "exclude": [".wxt", "dist", "node_modules", "e2e"]
+}
