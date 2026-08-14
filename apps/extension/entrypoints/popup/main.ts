@@ -1,4 +1,6 @@
+import '@andersseen/web-components/components/and-button.js';
 import '@andersseen/web-components/components/and-card.js';
+import '@andersseen/web-components/components/and-icon.js';
 import './style.css';
 import { MotionController } from '@andersseen/motion';
 import {
@@ -13,6 +15,7 @@ import {
   type SrReminderForm,
   registerStickyIcons,
 } from '@sticky-reminder/ui';
+import { browser } from 'wxt/browser';
 import { cancelReminderAlarm, scheduleReminderAlarm } from '../../utils/alarms';
 import {
   addReminder,
@@ -23,34 +26,83 @@ import {
 
 registerStickyIcons();
 
+type Filter = 'pending' | 'completed';
+
+const EMPTY_COPY: Record<Filter, { icon: string; title: string; description: string }> = {
+  pending: {
+    icon: 'bell',
+    title: 'No reminders yet',
+    description: 'Add one above and your browser will nudge you when the time comes.',
+  },
+  completed: {
+    icon: 'check',
+    title: 'Nothing done yet',
+    description: 'Reminders you tick off collect here.',
+  },
+};
+
 const container = document.getElementById('reminders') as HTMLElement;
 const form = document.querySelector('sr-reminder-form') as SrReminderForm;
 const formHeading = document.getElementById('form-heading') as HTMLElement;
-const motion = new MotionController({ root: container });
+const filterBar = document.getElementById('filters') as HTMLElement;
+const optionsButton = document.getElementById('open-options') as HTMLElement;
+
+// Only the static chrome animates. A popup is barely taller than its content,
+// so scroll-triggered reveals on the list would leave rows that start below the
+// fold sitting at opacity 0 until the user scrolls.
+new MotionController().scan();
 
 /** Id of the reminder being edited, or null while creating a new one. */
 let editingId: string | null = null;
+let filter: Filter = 'pending';
+
+function matchesFilter(reminder: Reminder): boolean {
+  return filter === 'completed' ? reminder.completed : !reminder.completed;
+}
+
+/** Kept in light DOM so the copy is part of the page text, not a shadow root. */
+function renderEmptyState(): HTMLElement {
+  const { icon, title, description } = EMPTY_COPY[filter];
+  const empty = document.createElement('sr-empty-state');
+  empty.icon = icon;
+
+  const heading = document.createElement('span');
+  heading.slot = 'title';
+  heading.textContent = title;
+  empty.append(heading, document.createTextNode(description));
+
+  return empty;
+}
+
+function renderCounts(reminders: Reminder[]) {
+  const counts: Record<Filter, number> = {
+    pending: reminders.filter((r) => !r.completed).length,
+    completed: reminders.filter((r) => r.completed).length,
+  };
+
+  for (const node of filterBar.querySelectorAll<HTMLElement>('[data-count]')) {
+    node.textContent = String(counts[node.dataset.count as Filter]);
+  }
+}
 
 function renderList(reminders: Reminder[]) {
-  if (reminders.length === 0) {
-    const empty = document.createElement('p');
-    empty.className = 'empty';
-    empty.textContent = 'No reminders yet.';
-    container.replaceChildren(empty);
+  renderCounts(reminders);
+
+  const visible = listReminders(reminders.filter(matchesFilter));
+  if (visible.length === 0) {
+    container.replaceChildren(renderEmptyState());
     return;
   }
 
   // Built as elements rather than an HTML string: reminder titles and notes are
   // user input and must never be parsed as markup.
   container.replaceChildren(
-    ...listReminders(reminders).map((reminder) => {
+    ...visible.map((reminder) => {
       const item = document.createElement('sr-reminder-item');
       item.reminder = reminder;
-      item.setAttribute('and-motion', 'fade-in');
       return item;
     }),
   );
-  motion.scan();
 }
 
 async function refreshList() {
@@ -95,6 +147,21 @@ async function rescheduleAlarm(reminder: Reminder) {
   await cancelReminderAlarm(reminder.id);
   await scheduleReminderAlarm(reminder);
 }
+
+filterBar.addEventListener('click', (event) => {
+  const tab = (event.target as HTMLElement).closest<HTMLElement>('[data-filter]');
+  if (!tab || tab.dataset.filter === filter) return;
+
+  filter = tab.dataset.filter as Filter;
+  for (const node of filterBar.querySelectorAll<HTMLElement>('[data-filter]')) {
+    node.setAttribute('aria-selected', String(node === tab));
+  }
+  void refreshList();
+});
+
+optionsButton.addEventListener('click', () => {
+  void browser.runtime.openOptionsPage();
+});
 
 form.addEventListener('sr-submit', async (event) => {
   const data = (event as CustomEvent<ReminderFormData>).detail;

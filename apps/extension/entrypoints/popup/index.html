@@ -7,6 +7,22 @@
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
+    <header class="sr-topbar">
+      <div class="sr-brand">
+        <img class="sr-brand-mark" src="/icon/48.png" alt="" width="22" height="22" />
+        <span class="sr-brand-name">Sticky Reminder</span>
+      </div>
+      <and-button
+        id="open-options"
+        variant="ghost"
+        size="icon"
+        aria-label="Open all reminders"
+        title="Open all reminders"
+      >
+        <and-icon name="settings" size="16"></and-icon>
+      </and-button>
+    </header>
+
     <main class="popup" and-layout="vertical gap:md p:md">
       <and-card padded>
         <h1 class="heading" id="form-heading">New reminder</h1>
@@ -14,9 +30,40 @@
       </and-card>
 
       <section and-layout="vertical gap:xs">
-        <h2 class="heading">Upcoming</h2>
-        <div id="reminders" and-layout="vertical gap:xs"></div>
+        <div class="list-head">
+          <h2 class="sr-label">Your reminders</h2>
+          <div class="sr-segmented" role="tablist" aria-label="Filter reminders" id="filters">
+            <button
+              type="button"
+              class="sr-segment"
+              role="tab"
+              data-filter="pending"
+              aria-selected="true"
+              aria-controls="reminders"
+            >
+              Upcoming
+              <span class="sr-segment-count" data-count="pending">0</span>
+            </button>
+            <button
+              type="button"
+              class="sr-segment"
+              role="tab"
+              data-filter="completed"
+              aria-selected="false"
+              aria-controls="reminders"
+            >
+              Done
+              <span class="sr-segment-count" data-count="completed">0</span>
+            </button>
+          </div>
+        </div>
+        <div id="reminders" role="tabpanel" and-layout="vertical gap:xs"></div>
       </section>
+
+      <p class="sr-hint footer-hint">
+        <and-icon name="lock" size="11"></and-icon>
+        Stored locally on this device. Nothing leaves your browser.
+      </p>
     </main>
     <script type="module" src="./main.ts"></script>
   </body>

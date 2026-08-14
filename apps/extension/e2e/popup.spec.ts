@@ -1,7 +1,5 @@
-import { fileURLToPath } from 'node:url';
-import { type BrowserContext, type Page, chromium, expect, test } from '@playwright/test';
-
-const EXTENSION_PATH = fileURLToPath(new URL('../.output/chrome-mv3', import.meta.url));
+import { type BrowserContext, type Page, expect, test } from '@playwright/test';
+import { loadExtension } from './extension';
 
 const REPEAT_LABELS = {
   none: 'Does not repeat',
@@ -18,17 +16,7 @@ test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(async () => {
   test.setTimeout(120_000);
-
-  // MV3 service workers only run in a persistent context with the unpacked
-  // build, and only on the full Chromium channel — the default download is
-  // headless-shell, which cannot load extensions at all.
-  context = await chromium.launchPersistentContext('', {
-    channel: 'chromium',
-    args: [`--disable-extensions-except=${EXTENSION_PATH}`, `--load-extension=${EXTENSION_PATH}`],
-  });
-
-  const worker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
-  extensionId = new URL(worker.url()).host;
+  ({ context, extensionId } = await loadExtension());
 });
 
 test.afterAll(async () => {
@@ -179,6 +167,26 @@ test('a fired repeating alarm reschedules instead of completing', async () => {
   expect(new Date(after.scheduledAt).getTime() - new Date(before.scheduledAt).getTime()).toBe(
     24 * 60 * 60 * 1000,
   );
+
+  await page.close();
+});
+
+test('completing a reminder moves it to the Done tab', async () => {
+  const page = await openPopup();
+  await fillReminder(page, 'Pay the invoice', 'none');
+  await submitForm(page);
+  await expect(page.locator('sr-reminder-item')).toHaveCount(1);
+
+  await page.locator('sr-reminder-item [aria-label="Mark as done"] button').click();
+
+  // Gone from Upcoming, and its alarm went with it.
+  await expect(page.locator('#reminders')).toContainText('No reminders yet');
+  expect(await page.evaluate(() => chrome.alarms.getAll())).toHaveLength(0);
+
+  await page.locator('[data-filter="completed"]').click();
+  await expect(page.locator('sr-reminder-item')).toContainText('Pay the invoice');
+  await expect(page.locator('[data-count="completed"]')).toHaveText('1');
+  await expect(page.locator('[data-count="pending"]')).toHaveText('0');
 
   await page.close();
 });
