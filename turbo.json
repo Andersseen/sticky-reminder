@@ -5,6 +5,9 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      // Turbo runs tasks in strict env mode, so the site's deploy-time base
+      // path has to be declared to reach the Astro build at all.
+      "env": ["SITE_URL", "SITE_BASE"],
       "outputs": ["dist/**", "build/**", ".output/**", ".wxt/**"]
     },
     "dev": {
