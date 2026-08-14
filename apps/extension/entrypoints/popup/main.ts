@@ -47,21 +47,22 @@ async function refreshList() {
 
 document.addEventListener('sr-submit', async (event) => {
   const data = (event as CustomEvent<ReminderFormData>).detail;
+
+  const scheduledAt = new Date(data.scheduledAt);
+  if (Number.isNaN(scheduledAt.getTime())) return;
+
   const reminder = createReminder({
     title: data.title,
     body: data.body,
-    scheduledAt: new Date(data.scheduledAt).toISOString(),
-    repeat: 'none',
+    scheduledAt: scheduledAt.toISOString(),
+    repeat: data.repeat,
   });
 
   await addReminder(reminder);
   await scheduleReminderAlarm(reminder);
   await refreshList();
 
-  const form = document.querySelector('sr-reminder-form');
-  if (form) {
-    (form as HTMLElement).shadowRoot?.querySelector('form')?.reset();
-  }
+  document.querySelector('sr-reminder-form')?.reset();
 });
 
 refreshList();

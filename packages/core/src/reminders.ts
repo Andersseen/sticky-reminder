@@ -1,5 +1,17 @@
-import { addDays, addWeeks, isBefore, parseISO } from 'date-fns';
-import type { CreateReminderInput, Reminder, UpdateReminderInput } from './types';
+import { addDays, addWeeks, isBefore, isValid, parseISO } from 'date-fns';
+import type { CreateReminderInput, Reminder, RepeatInterval, UpdateReminderInput } from './types';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+interface RepeatStep {
+  add: (date: Date, amount: number) => Date;
+  ms: number;
+}
+
+const REPEAT_STEPS: Record<Exclude<RepeatInterval, 'none'>, RepeatStep> = {
+  daily: { add: addDays, ms: DAY_MS },
+  weekly: { add: addWeeks, ms: 7 * DAY_MS },
+};
 
 export function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
@@ -44,23 +56,47 @@ export function toggleReminderCompletion(reminder: Reminder): Reminder {
   return { ...reminder, completed: !reminder.completed, updatedAt: new Date().toISOString() };
 }
 
-export function calculateNextAlarm(reminder: Reminder): Date | null {
-  const scheduled = parseISO(reminder.scheduledAt);
-  if (isBefore(new Date(), scheduled) && !reminder.completed) {
-    return scheduled;
-  }
-
-  if (reminder.completed || reminder.repeat === 'none') {
+export function calculateNextAlarm(reminder: Reminder, from: Date = new Date()): Date | null {
+  if (reminder.completed) {
     return null;
   }
 
-  if (reminder.repeat === 'daily') {
-    return addDays(scheduled, 1);
+  const scheduled = parseISO(reminder.scheduledAt);
+  if (!isValid(scheduled)) {
+    return null;
   }
 
-  if (reminder.repeat === 'weekly') {
-    return addWeeks(scheduled, 1);
+  if (isBefore(from, scheduled)) {
+    return scheduled;
   }
 
-  return null;
+  if (reminder.repeat === 'none') {
+    return null;
+  }
+
+  // Skip the periods that already elapsed in one jump so a reminder left dormant
+  // for months does not step forward a day at a time, then walk the remainder:
+  // calendar arithmetic drifts from fixed milliseconds across DST boundaries.
+  const { add, ms } = REPEAT_STEPS[reminder.repeat];
+  let next = add(scheduled, Math.floor((from.getTime() - scheduled.getTime()) / ms));
+  while (!isBefore(from, next)) {
+    next = add(next, 1);
+  }
+
+  return next;
+}
+
+/**
+ * Rolls a reminder forward after its alarm fired: repeating reminders move to
+ * their next occurrence, one-off reminders are done.
+ */
+export function advanceReminder(reminder: Reminder, from: Date = new Date()): Reminder {
+  const next = calculateNextAlarm(reminder, from);
+  const updatedAt = from.toISOString();
+
+  if (!next) {
+    return { ...reminder, completed: true, updatedAt };
+  }
+
+  return { ...reminder, scheduledAt: next.toISOString(), updatedAt };
 }

@@ -1,6 +1,7 @@
-import { parseISO } from 'date-fns';
+import { addDays, addWeeks, parseISO } from 'date-fns';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  advanceReminder,
   calculateNextAlarm,
   createReminder,
   deleteReminder,
@@ -102,6 +103,73 @@ describe('calculateNextAlarm', () => {
     const next = calculateNextAlarm(reminder);
     expect(next).not.toBeNull();
     expect(next?.getTime()).toBeGreaterThan(Date.now());
+  });
+
+  it('skips every daily occurrence missed while dormant', () => {
+    const now = new Date('2026-08-14T12:00:00.000Z');
+    const scheduled = new Date('2026-07-01T09:00:00.000Z');
+    const reminder = createReminder(
+      makeInput({ scheduledAt: scheduled.toISOString(), repeat: 'daily' }),
+    );
+
+    // 44 days elapsed, so the next occurrence is the 45th one — the first after now.
+    expect(calculateNextAlarm(reminder, now)).toEqual(addDays(scheduled, 45));
+  });
+
+  it('skips every weekly occurrence missed while dormant', () => {
+    const now = new Date('2026-08-14T12:00:00.000Z');
+    const scheduled = new Date('2026-06-05T09:00:00.000Z');
+    const reminder = createReminder(
+      makeInput({ scheduledAt: scheduled.toISOString(), repeat: 'weekly' }),
+    );
+
+    // Exactly 10 weeks elapsed, so the 10th occurrence is already due — take the 11th.
+    const next = calculateNextAlarm(reminder, now);
+    expect(next).toEqual(addWeeks(scheduled, 11));
+    expect(next?.getTime()).toBeGreaterThan(now.getTime());
+  });
+
+  it('returns null for an unparseable scheduledAt', () => {
+    const reminder = createReminder(makeInput({ scheduledAt: 'not a date', repeat: 'daily' }));
+    expect(calculateNextAlarm(reminder)).toBeNull();
+  });
+});
+
+describe('advanceReminder', () => {
+  const now = new Date('2026-08-14T12:00:00.000Z');
+
+  it('completes a one-off reminder that already fired', () => {
+    const past = new Date('2026-08-14T11:00:00.000Z').toISOString();
+    const reminder = createReminder(makeInput({ scheduledAt: past, repeat: 'none' }));
+
+    const advanced = advanceReminder(reminder, now);
+    expect(advanced.completed).toBe(true);
+    expect(advanced.scheduledAt).toBe(past);
+  });
+
+  it('rolls a repeating reminder forward instead of completing it', () => {
+    const scheduled = new Date('2026-08-14T11:00:00.000Z');
+    const reminder = createReminder(
+      makeInput({ scheduledAt: scheduled.toISOString(), repeat: 'daily' }),
+    );
+
+    const advanced = advanceReminder(reminder, now);
+    expect(advanced.completed).toBe(false);
+    expect(advanced.scheduledAt).toBe(addDays(scheduled, 1).toISOString());
+    expect(advanced.updatedAt).toBe(now.toISOString());
+  });
+
+  it('keeps rolling forward on every firing', () => {
+    const scheduled = new Date('2026-08-14T11:00:00.000Z');
+    let reminder = createReminder(
+      makeInput({ scheduledAt: scheduled.toISOString(), repeat: 'daily' }),
+    );
+
+    for (let occurrence = 0; occurrence < 3; occurrence++) {
+      reminder = advanceReminder(reminder, addDays(scheduled, occurrence));
+      expect(reminder.completed).toBe(false);
+      expect(reminder.scheduledAt).toBe(addDays(scheduled, occurrence + 1).toISOString());
+    }
   });
 });
 

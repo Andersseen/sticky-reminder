@@ -1,10 +1,26 @@
-import { formatNotificationBody, formatNotificationTitle } from '@sticky-reminder/core';
+import {
+  advanceReminder,
+  formatNotificationBody,
+  formatNotificationTitle,
+} from '@sticky-reminder/core';
 import { browser } from 'wxt/browser';
 import { defineBackground } from 'wxt/sandbox';
-import { reminderIdFromAlarmName } from '../utils/alarms';
+import {
+  reminderIdFromAlarmName,
+  scheduleReminderAlarm,
+  syncReminderAlarms,
+} from '../utils/alarms';
 import { loadReminders, updateStoredReminder } from '../utils/storage';
 
 export default defineBackground(() => {
+  browser.runtime.onInstalled.addListener(() => {
+    void syncReminderAlarms();
+  });
+
+  browser.runtime.onStartup.addListener(() => {
+    void syncReminderAlarms();
+  });
+
   browser.alarms.onAlarm.addListener(async (alarm) => {
     const id = reminderIdFromAlarmName(alarm.name);
     if (!id) return;
@@ -20,8 +36,11 @@ export default defineBackground(() => {
       message: formatNotificationBody(reminder),
     });
 
-    reminder.completed = true;
-    await updateStoredReminder(reminder);
+    // Repeating reminders roll forward to their next occurrence and get a fresh
+    // alarm; one-off reminders are marked completed and schedule nothing.
+    const advanced = advanceReminder(reminder);
+    await updateStoredReminder(advanced);
+    await scheduleReminderAlarm(advanced);
   });
 
   browser.notifications.onClicked.addListener((notificationId) => {
