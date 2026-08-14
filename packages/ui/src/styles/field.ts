@@ -7,6 +7,17 @@ import { css } from 'lit';
  * text-sm shadow-sm`.
  */
 export const fieldStyles = css`
+  /* and-input@0.4.1 sets bg-background but no text colour, and a native input
+     does not inherit one — so it falls back to the UA black and drops to about
+     1.1:1 against the dark background. Reachable from here because the
+     component renders scoped, not into a shadow root. */
+  and-input input {
+    color: hsl(var(--foreground));
+  }
+  and-input input::placeholder {
+    color: hsl(var(--muted-foreground));
+  }
+
   .sr-field {
     display: flex;
     width: 100%;

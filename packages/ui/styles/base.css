@@ -10,9 +10,28 @@
 /* Keyframes behind [and-motion]. */
 @import "@andersseen/motion/style.css";
 
+:root {
+  /* Native controls (the datetime picker, spinners, scrollbars) render from the
+     UA palette, so they need telling which scheme the tokens resolved to. */
+  color-scheme: light dark;
+}
+
 body {
   margin: 0;
   background: hsl(var(--background));
   color: hsl(var(--foreground));
   font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+}
+
+/* Announcements for screen readers that carry no visual weight. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
