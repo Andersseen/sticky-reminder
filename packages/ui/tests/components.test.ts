@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import '../src';
 import {
   type ReminderFormData,
+  type SrEmptyState,
   type SrReminderForm,
   type SrReminderItem,
   registerStickyIcons,
@@ -29,14 +30,18 @@ function emitControlChange(host: ShadowRoot, selector: string, type: string, val
   control.dispatchEvent(new CustomEvent(type, { detail: value, bubbles: true, composed: true }));
 }
 
+const HOUR = 60 * 60 * 1000;
+
+/** Relative dates, so a fixture does not quietly become overdue with time. */
 function makeReminder(overrides: Partial<Reminder> = {}): Reminder {
+  const now = Date.now();
   return {
     id: 'r1',
     title: 'Standup',
     body: 'Join the team meeting',
-    createdAt: '2026-08-14T09:00:00.000Z',
-    updatedAt: '2026-08-14T09:00:00.000Z',
-    scheduledAt: '2026-08-15T09:00:00.000Z',
+    createdAt: new Date(now - HOUR).toISOString(),
+    updatedAt: new Date(now - HOUR).toISOString(),
+    scheduledAt: new Date(now + 3 * HOUR).toISOString(),
     repeat: 'daily',
     completed: false,
     ...overrides,
@@ -109,6 +114,19 @@ describe('sr-reminder-form', () => {
     ).toBe('');
   });
 
+  it('fills the date from a shortcut', async () => {
+    const preset = shadow(form).querySelector('.preset') as HTMLButtonElement;
+    expect(preset.textContent?.trim()).toBe('In 1 hour');
+
+    preset.click();
+    await form.updateComplete;
+
+    // `datetime-local` wants local wall-clock time, not an ISO instant.
+    const expected = new Date(Date.now() + 60 * 60 * 1000);
+    expect(form.value.scheduledAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
+    expect(new Date(form.value.scheduledAt).getHours()).toBe(expected.getHours());
+  });
+
   it('emits sr-cancel only while cancelable', async () => {
     expect(shadow(form).querySelector('and-button[variant="ghost"]')).toBeNull();
 
@@ -177,5 +195,47 @@ describe('sr-reminder-item', () => {
       'sr-reminder-edit:abc',
       'sr-reminder-delete:abc',
     ]);
+  });
+
+  it('marks a pending reminder whose moment has passed as overdue', async () => {
+    const item = await mount<SrReminderItem>('sr-reminder-item');
+    item.reminder = makeReminder({ scheduledAt: new Date(Date.now() - 2 * HOUR).toISOString() });
+    await item.updateComplete;
+
+    expect(shadow(item).querySelector('.item')?.getAttribute('data-state')).toBe('overdue');
+    expect(shadow(item).querySelector('.relative')?.textContent).toContain('ago');
+  });
+
+  it('drops the countdown once a reminder is done', async () => {
+    const item = await mount<SrReminderItem>('sr-reminder-item');
+    item.reminder = makeReminder({ completed: true });
+    await item.updateComplete;
+
+    expect(shadow(item).querySelector('.item')?.getAttribute('data-state')).toBe('done');
+    expect(shadow(item).querySelector('.relative')).toBeNull();
+    expect(shadow(item).querySelector('.absolute')).not.toBeNull();
+  });
+
+  it('says so rather than rendering an invalid date', async () => {
+    const item = await mount<SrReminderItem>('sr-reminder-item');
+    item.reminder = makeReminder({ scheduledAt: 'not-a-date' });
+    await item.updateComplete;
+
+    expect(shadow(item).querySelector('.absolute')?.textContent).toBe('No date');
+  });
+});
+
+describe('sr-empty-state', () => {
+  it('keeps its copy in light DOM so the host page can read it', async () => {
+    document.body.innerHTML = `
+      <sr-empty-state icon="bell">
+        <span slot="title">No reminders yet</span>
+        Add one above.
+      </sr-empty-state>`;
+    const empty = document.querySelector('sr-empty-state') as SrEmptyState;
+    await empty.updateComplete;
+
+    expect(empty.textContent).toContain('No reminders yet');
+    expect(shadow(empty).querySelector('and-icon')?.getAttribute('name')).toBe('bell');
   });
 });

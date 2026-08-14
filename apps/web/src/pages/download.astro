@@ -1,27 +1,79 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { ISSUES_URL, LATEST_RELEASE_URL, REPO_URL } from '../lib/site';
 ---
 
-<Layout title="Download Sticky Reminder">
-  <main class="download" and-layout="vertical gap:lg p:lg">
-    <h1>Download Sticky Reminder</h1>
-    <p class="muted">Choose your browser and follow the instructions.</p>
+<Layout
+  title="Install Sticky Reminder"
+  description="Install Sticky Reminder in Chrome, Edge or Firefox — the build for each is attached to every release."
+>
+  <section class="container page-head">
+    <p class="eyebrow">Install</p>
+    <h1 class="page-title">Get Sticky Reminder</h1>
+    <p class="section-lead">
+      Every release ships a build for Chromium browsers and one for Firefox. Pick yours, then follow
+      the four lines below — it takes about a minute.
+    </p>
 
-    <section>
-      <h2>Chrome / Edge</h2>
-      <ol>
-        <li>Download the built extension from the releases page.</li>
-        <li>Open <code>chrome://extensions</code> and enable developer mode.</li>
-        <li>Drag and drop the ZIP file into the extensions page.</li>
-      </ol>
-    </section>
+    <div class="hero-actions" style="margin-top: 1.5rem;">
+      <and-button href={LATEST_RELEASE_URL} size="lg" rel="noreferrer">
+        <and-icon name="download" size="16"></and-icon>
+        Download the latest release
+      </and-button>
+      <and-button href={REPO_URL} variant="outline" size="lg" rel="noreferrer">
+        Build it yourself
+      </and-button>
+    </div>
+  </section>
 
-    <section>
-      <h2>Firefox</h2>
-      <ol>
-        <li>Download the built extension from the releases page.</li>
-        <li>Open <code>about:debugging</code> and load the temporary add-on.</li>
-      </ol>
-    </section>
-  </main>
+  <section class="section" style="padding-top: 2rem;">
+    <div class="container install-grid">
+      <article class="install-card" and-motion="fade-in-up">
+        <h2>Chrome, Edge, Brave, Arc</h2>
+        <p class="muted">Anything Chromium, using the MV3 build.</p>
+        <ol>
+          <li>Download <code>sticky-reminder-*-chrome.zip</code> from the latest release and unzip it.</li>
+          <li>Open <code>chrome://extensions</code> and turn on <strong>Developer mode</strong>.</li>
+          <li>Click <strong>Load unpacked</strong> and choose the unzipped folder.</li>
+          <li>Pin the icon so the popup is always one click away.</li>
+        </ol>
+      </article>
+
+      <article class="install-card" and-motion="fade-in-up">
+        <h2>Firefox</h2>
+        <p class="muted">Using the Firefox build from the same release.</p>
+        <ol>
+          <li>Download <code>sticky-reminder-*-firefox.zip</code> from the latest release.</li>
+          <li>Open <code>about:debugging#/runtime/this-firefox</code>.</li>
+          <li>Click <strong>Load Temporary Add-on</strong> and select the ZIP.</li>
+          <li>Pin it to the toolbar from the extensions menu.</li>
+        </ol>
+      </article>
+    </div>
+
+    <div class="container" style="margin-top: 1.25rem; display: grid; gap: 0.75rem;">
+      <p class="note">
+        <and-icon name="bell" size="16"></and-icon>
+        <span>
+          A temporary add-on in Firefox is removed when the browser restarts — that is Firefox's
+          rule for unsigned builds, not a limit of the extension. The Chromium build survives
+          restarts.
+        </span>
+      </p>
+      <p class="note">
+        <and-icon name="code" size="16"></and-icon>
+        <span>
+          Prefer to build from source? Clone the repo, run <code>pnpm install</code>, then
+          <code>pnpm build</code> and load <code>apps/extension/.output/chrome-mv3</code> unpacked.
+        </span>
+      </p>
+      <p class="note">
+        <and-icon name="github" size="16"></and-icon>
+        <span>
+          Something not working? <a href={ISSUES_URL} rel="noreferrer">Open an issue</a> — include
+          your browser and version.
+        </span>
+      </p>
+    </div>
+  </section>
 </Layout>

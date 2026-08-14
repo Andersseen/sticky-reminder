@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "wxt",
     "build": "wxt build",
-    "zip": "wxt build --zip",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
     "lint": "tsc --noEmit && biome check .",
     "test": "vitest run",
     "test:e2e": "playwright test",

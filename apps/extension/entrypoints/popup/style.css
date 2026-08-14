@@ -1,23 +1,35 @@
 @import "@sticky-reminder/ui/styles";
 
 body {
-  width: 380px;
+  width: 400px;
   margin: 0;
+  /* Chromium caps the popup at 600px and scrolls the body; keeping the frame
+     shorter than the cap means the header stays put instead of jumping. */
+  max-height: 580px;
+  overflow-y: auto;
 }
 
 .heading {
   font-size: 0.9375rem;
   font-weight: 600;
-  margin: 0 0 0.5rem;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.625rem;
 }
 
-.empty {
+.list-head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
-  padding: 1rem;
-  border: var(--border-width, 1px) dashed hsl(var(--border));
-  border-radius: calc(var(--radius) * 0.75);
-  color: hsl(var(--muted-foreground));
-  font-size: 0.8125rem;
+  padding-bottom: 0.125rem;
+}
+
+.footer-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3125rem;
+  padding-top: 0.25rem;
+  border-top: var(--border-width, 1px) solid hsl(var(--border));
+  margin-top: 0.25rem;
 }

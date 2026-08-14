@@ -1,0 +1,23 @@
+---
+import { url, ISSUES_URL, RELEASES_URL, REPO_URL } from '../lib/site';
+---
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div and-layout="vertical gap:xxs">
+      <a class="brand" href={url('/')}>
+        <img src={url('/icon.svg')} alt="" width="26" height="26" />
+        Sticky Reminder
+      </a>
+      <p class="footer-note">Reminders that stay on your device. MIT licensed.</p>
+    </div>
+
+    <nav class="footer-links" aria-label="Footer">
+      <a href={url('/download')}>Install</a>
+      <a href={RELEASES_URL} rel="noreferrer">Releases</a>
+      <a href={REPO_URL} rel="noreferrer">Source</a>
+      <a href={ISSUES_URL} rel="noreferrer">Report an issue</a>
+      <a href={`${REPO_URL}/blob/main/LICENSE`} rel="noreferrer">License</a>
+    </nav>
+  </div>
+</footer>

@@ -3,16 +3,105 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sticky Reminder Options</title>
+    <title>Sticky Reminder — All reminders</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
+    <header class="sr-topbar">
+      <div class="sr-brand">
+        <img class="sr-brand-mark" src="/icon/48.png" alt="" width="22" height="22" />
+        <span class="sr-brand-name">Sticky Reminder</span>
+        <span class="sr-brand-tag">All reminders</span>
+      </div>
+      <a
+        class="topbar-link"
+        href="https://github.com/Andersseen/sticky-reminder"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <and-icon name="github" size="14"></and-icon>
+        GitHub
+      </a>
+    </header>
+
     <main class="options" and-layout="vertical gap:lg p:lg">
-      <header and-layout="vertical gap:xxs">
-        <h1 class="title" and-text="weight:semibold">Sticky Reminder</h1>
-        <p class="muted">All reminders are stored locally in your browser.</p>
-      </header>
-      <div id="reminders" and-layout="vertical gap:xs"></div>
+      <section class="stats" and-layout="horizontal gap:sm wrap:wrap" and-motion="fade-in">
+        <and-card padded class="stat">
+          <span class="stat-value" data-stat="total">0</span>
+          <span class="stat-label">Total</span>
+        </and-card>
+        <and-card padded class="stat">
+          <span class="stat-value" data-stat="pending">0</span>
+          <span class="stat-label">Upcoming</span>
+        </and-card>
+        <and-card padded class="stat">
+          <span class="stat-value" data-stat="overdue">0</span>
+          <span class="stat-label">Overdue</span>
+        </and-card>
+        <and-card padded class="stat">
+          <span class="stat-value" data-stat="completed">0</span>
+          <span class="stat-label">Done</span>
+        </and-card>
+      </section>
+
+      <section and-layout="vertical gap:sm">
+        <div class="toolbar">
+          <div class="sr-segmented" role="tablist" aria-label="Filter reminders" id="filters">
+            <button
+              type="button"
+              class="sr-segment"
+              role="tab"
+              data-filter="all"
+              aria-selected="true"
+              aria-controls="reminders"
+            >
+              All
+              <span class="sr-segment-count" data-count="all">0</span>
+            </button>
+            <button
+              type="button"
+              class="sr-segment"
+              role="tab"
+              data-filter="pending"
+              aria-selected="false"
+              aria-controls="reminders"
+            >
+              Upcoming
+              <span class="sr-segment-count" data-count="pending">0</span>
+            </button>
+            <button
+              type="button"
+              class="sr-segment"
+              role="tab"
+              data-filter="completed"
+              aria-selected="false"
+              aria-controls="reminders"
+            >
+              Done
+              <span class="sr-segment-count" data-count="completed">0</span>
+            </button>
+          </div>
+
+          <div class="search">
+            <and-icon name="search" size="14"></and-icon>
+            <input
+              id="search"
+              type="search"
+              class="search-field"
+              placeholder="Search reminders"
+              aria-label="Search reminders"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <div id="reminders" role="tabpanel" and-layout="vertical gap:xs"></div>
+      </section>
+
+      <p class="sr-hint footer-hint">
+        <and-icon name="lock" size="12"></and-icon>
+        Reminders live in this browser's local storage. No account, no sync, no tracking.
+      </p>
     </main>
     <script type="module" src="./main.ts"></script>
   </body>

@@ -4,6 +4,13 @@
    the shadow boundary. */
 @import "@andersseen/web-components/tokens.css";
 
+/* Several components apply utility classes to their own custom-element host
+   (and-card is `rounded-lg border bg-card shadow-md p-4`), and a component's
+   scoped stylesheet cannot style its own host that way. Without this file the
+   cards render as bare, unpadded blocks. It is the Preflight-free build, so it
+   does not fight the rules below. */
+@import "@andersseen/web-components/elements.css";
+
 /* Attribute-driven layout and typography: [and-layout~="vertical gap:md"]. */
 @import "@andersseen/layout/dist/layout.css";
 
@@ -14,6 +21,16 @@
   /* Native controls (the datetime picker, spinners, scrollbars) render from the
      UA palette, so they need telling which scheme the tokens resolved to. */
   color-scheme: light dark;
+}
+
+/* No Preflight comes with the components, and several of them (and-input,
+   and-select) render their control into light DOM with `w-full` plus
+   horizontal padding — content-box sizing makes those overflow their container
+   by exactly that padding. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body {
@@ -34,4 +51,125 @@ body {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* ── Extension chrome ───────────────────────────────────────────────────────
+   Shared by the popup and the options page so the two read as one product.
+   Everything here is light DOM: the Lit components style themselves. */
+
+.sr-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  border-bottom: var(--border-width, 1px) solid hsl(var(--border));
+  background: hsl(var(--card) / 0.85);
+  backdrop-filter: blur(var(--theme-surface-blur, 8px));
+}
+
+.sr-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.sr-brand-mark {
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 0.4375rem;
+  flex: 0 0 auto;
+}
+
+.sr-brand-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.sr-brand-tag {
+  font-size: 0.6875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Segmented control — one row of mutually exclusive filters. */
+.sr-segmented {
+  display: inline-flex;
+  padding: 0.1875rem;
+  gap: 0.125rem;
+  border: var(--border-width, 1px) solid hsl(var(--border));
+  border-radius: 9999px;
+  background: hsl(var(--muted) / 0.6);
+}
+
+.sr-segment {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  padding: 0.25rem 0.625rem;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sr-segment:hover {
+  color: hsl(var(--foreground));
+}
+
+.sr-segment[aria-selected="true"] {
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  box-shadow: 0 1px 2px hsl(var(--foreground) / 0.08);
+}
+
+.sr-segment:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.sr-segment-count {
+  min-width: 1.125rem;
+  padding: 0 0.25rem;
+  border-radius: 9999px;
+  background: hsl(var(--muted-foreground) / 0.18);
+  font-size: 0.625rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-segment[aria-selected="true"] .sr-segment-count {
+  background: hsl(var(--primary) / 0.15);
+  color: hsl(var(--primary));
+}
+
+/* Section label above a list. */
+.sr-label {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.sr-hint {
+  margin: 0;
+  font-size: 0.6875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sr-segment {
+    transition: none;
+  }
 }

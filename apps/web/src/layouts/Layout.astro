@@ -1,11 +1,23 @@
 ---
 import '../styles/base.css';
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import { url, SITE_DESCRIPTION, SITE_NAME } from '../lib/site';
 
 export interface Props {
   title?: string;
+  description?: string;
 }
 
-const { title = 'Sticky Reminder' } = Astro.props;
+const {
+  title = `${SITE_NAME} — reminders that stay in your browser`,
+  description = SITE_DESCRIPTION,
+} = Astro.props;
+
+// Astro.site is unset in some dev setups; the fallback keeps the tags valid.
+const origin = Astro.site ?? new URL('http://localhost:4321');
+const canonical = new URL(Astro.url.pathname, origin);
+const ogImage = new URL(url('/og.png'), origin);
 ---
 
 <!DOCTYPE html>
@@ -14,8 +26,61 @@ const { title = 'Sticky Reminder' } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href={url('/icon.svg')} type="image/svg+xml" />
+    <meta name="theme-color" content="#4f46e5" />
+    <meta name="color-scheme" content="light dark" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Applied before first paint: a stored choice must not flash the other
+         theme while the module script is still loading. -->
+    <script is:inline>
+      const mode = localStorage.getItem('sr-theme');
+      if (mode === 'dark' || mode === 'light') {
+        document.documentElement.setAttribute('data-mode', mode);
+      }
+    </script>
   </head>
   <body>
-    <slot />
+    <a class="skip-link" href="#main">Skip to content</a>
+    <SiteHeader />
+    <main id="main">
+      <slot />
+    </main>
+    <SiteFooter />
+
+    <script>
+      import '@andersseen/web-components/components/and-badge.js';
+      import '@andersseen/web-components/components/and-button.js';
+      import '@andersseen/web-components/components/and-icon.js';
+      import { MotionController } from '@andersseen/motion';
+      import { registerStickyIcons } from '@sticky-reminder/ui';
+
+      registerStickyIcons();
+      new MotionController().scan();
+
+      const root = document.documentElement;
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+      document.getElementById('theme-toggle')?.addEventListener('click', () => {
+        const mode = root.getAttribute('data-mode');
+        const isDark = mode ? mode === 'dark' : prefersDark.matches;
+        const next = isDark ? 'light' : 'dark';
+
+        root.setAttribute('data-mode', next);
+        localStorage.setItem('sr-theme', next);
+      });
+    </script>
   </body>
 </html>

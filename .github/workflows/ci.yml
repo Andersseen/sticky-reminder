@@ -6,8 +6,14 @@ on:
   pull_request:
     branches: [main]
 
+# A new push to a branch makes the run already in flight irrelevant.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint-and-test:
+    name: Lint, test, build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,14 +36,16 @@ jobs:
       - name: Test
         run: pnpm test
 
+      # Builds every workspace, the extension's chrome-mv3 output included.
       - name: Build
         run: pnpm build
 
-      - name: Build extension
+      - name: Build extension for Firefox
         working-directory: apps/extension
-        run: pnpm build
+        run: pnpm build:firefox
 
   e2e:
+    name: End-to-end
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -67,3 +75,13 @@ jobs:
       - name: Run extension E2E tests
         working-directory: apps/extension
         run: pnpm test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            apps/extension/playwright-report
+          retention-days: 7
