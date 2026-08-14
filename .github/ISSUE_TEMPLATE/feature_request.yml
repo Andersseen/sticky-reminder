@@ -1,0 +1,27 @@
+name: Feature request
+description: Suggest something the extension should do
+labels: ['enhancement']
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The situation, not the solution — it usually points at a better fix than the one either of us had in mind.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like it to do?
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Does it fit the project's constraints?
+      description: Sticky Reminder stores everything locally and makes no network requests. Proposals that need a server are unlikely to land, but say so and we can talk about it.
+      options:
+        - label: This works without an account, a server or any network request
+        - label: This needs more than the alarms, notifications and storage permissions
