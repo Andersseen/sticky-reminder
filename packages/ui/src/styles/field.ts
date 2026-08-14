@@ -7,6 +7,15 @@ import { css } from 'lit';
  * text-sm shadow-sm`.
  */
 export const fieldStyles = css`
+  /* A shadow root starts from the UA defaults, so the page's box-sizing reset
+     stops at the boundary: without this, the full-width padded control these
+     components render ends up exactly its own padding wider than the form. */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
   /* and-input@0.4.1 sets bg-background but no text colour, and a native input
      does not inherit one — so it falls back to the UA black and drops to about
      1.1:1 against the dark background. Reachable from here because the

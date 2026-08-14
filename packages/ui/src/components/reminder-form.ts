@@ -1,5 +1,6 @@
 import '@andersseen/web-components/components/and-button.js';
 import '@andersseen/web-components/components/and-control.js';
+import '@andersseen/web-components/components/and-icon.js';
 import '@andersseen/web-components/components/and-input.js';
 import '@andersseen/web-components/components/and-select.js';
 import type { SelectOption } from '@andersseen/web-components';
@@ -22,12 +23,45 @@ const REPEAT_OPTIONS: SelectOption[] = [
   { text: 'Every week', value: 'weekly' },
 ];
 
+/** One-tap due dates. Most reminders are "soon", not a date somebody types out. */
+const PRESETS: { label: string; resolve: (from: Date) => Date }[] = [
+  {
+    label: 'In 1 hour',
+    resolve: (from) => new Date(from.getTime() + 60 * 60_000),
+  },
+  {
+    label: 'This evening',
+    resolve: (from) => {
+      const at = new Date(from);
+      at.setHours(18, 0, 0, 0);
+      // Already past six: the useful "evening" is tomorrow's.
+      if (at <= from) at.setDate(at.getDate() + 1);
+      return at;
+    },
+  },
+  {
+    label: 'Tomorrow 9:00',
+    resolve: (from) => {
+      const at = new Date(from);
+      at.setDate(at.getDate() + 1);
+      at.setHours(9, 0, 0, 0);
+      return at;
+    },
+  },
+];
+
 const EMPTY_FORM: ReminderFormData = {
   title: '',
   body: '',
   scheduledAt: '',
   repeat: 'none',
 };
+
+/** `datetime-local` wants `YYYY-MM-DDTHH:mm` in local time, not an ISO instant. */
+function toLocalInputValue(date: Date): string {
+  const offset = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+}
 
 /**
  * Create/edit form for a reminder. Emits `sr-submit` with the collected
@@ -62,10 +96,56 @@ export class SrReminderForm extends LitElement {
         flex-direction: column;
         gap: 0.75rem;
       }
+      .presets {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.375rem;
+        margin-bottom: 0.375rem;
+      }
+      /* Deliberately not and-button: these are quiet, dense shortcuts that sit
+         inside a field, and the button variants all outrank the field itself. */
+      .preset {
+        padding: 0.25rem 0.5rem;
+        border: var(--border-width, 1px) solid hsl(var(--border));
+        border-radius: 9999px;
+        background: hsl(var(--muted) / 0.5);
+        color: hsl(var(--muted-foreground));
+        font: inherit;
+        font-size: 0.6875rem;
+        font-weight: 500;
+        line-height: 1.4;
+        cursor: pointer;
+        transition:
+          color 0.15s ease,
+          border-color 0.15s ease,
+          background-color 0.15s ease;
+      }
+      .preset:hover {
+        border-color: hsl(var(--ring) / 0.5);
+        background: hsl(var(--accent));
+        color: hsl(var(--accent-foreground));
+      }
+      .preset:focus-visible {
+        outline: 2px solid hsl(var(--ring));
+        outline-offset: 2px;
+      }
       .actions {
         display: flex;
         justify-content: flex-end;
+        align-items: center;
         gap: 0.5rem;
+        margin-top: 0.125rem;
+      }
+      /* and-button renders its native button scoped rather than into a shadow
+         root, so the icon/label gap is reachable from here. */
+      and-button button {
+        gap: 0.375rem;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .preset {
+          transition: none;
+        }
       }
     `,
   ];
@@ -93,7 +173,7 @@ export class SrReminderForm extends LitElement {
           <textarea
             class="sr-field"
             name="body"
-            rows="3"
+            rows="2"
             placeholder="Add details..."
             .value=${this.value.body}
             @input=${(event: Event) =>
@@ -106,6 +186,15 @@ export class SrReminderForm extends LitElement {
           required
           error=${this.error !== '' && this.value.scheduledAt === '' ? this.error : ''}
         >
+          <div class="presets">
+            ${PRESETS.map(
+              (preset) => html`
+                <button type="button" class="preset" @click=${() => this.#applyPreset(preset)}>
+                  ${preset.label}
+                </button>
+              `,
+            )}
+          </div>
           <input
             class="sr-field"
             type="datetime-local"
@@ -136,7 +225,10 @@ export class SrReminderForm extends LitElement {
               </and-button>`
               : null
           }
-          <and-button type="submit">${this.submitLabel}</and-button>
+          <and-button type="submit">
+            <and-icon name="bell" size="14"></and-icon>
+            ${this.submitLabel}
+          </and-button>
         </div>
       </form>
     `;
@@ -146,6 +238,10 @@ export class SrReminderForm extends LitElement {
   reset() {
     this.value = { ...EMPTY_FORM };
     this.error = '';
+  }
+
+  #applyPreset(preset: (typeof PRESETS)[number]) {
+    this.#setField('scheduledAt', toLocalInputValue(preset.resolve(new Date())));
   }
 
   #setField<K extends keyof ReminderFormData>(name: K, value: ReminderFormData[K]) {
