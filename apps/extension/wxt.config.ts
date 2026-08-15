@@ -13,16 +13,19 @@ export default defineConfig({
     description:
       'Create reminders in one click and let your browser notify you — daily, weekly or once. Everything stays on your device.',
     version: '0.1.0',
-    homepage_url: 'https://andersseen.github.io/sticky-reminder/',
+    homepage_url: 'https://sticky-reminder.pages.dev/',
     permissions: ['alarms', 'notifications', 'storage'],
     action: {
       default_title: 'Sticky Reminder — new reminder',
     },
     // Firefox refuses to install an unsigned build without an add-on id; the
-    // key is ignored by the Chromium build.
+    // key is ignored by the Chromium build. The id is an identity, never a URL
+    // that gets fetched, and Firefox treats a change to it as a different
+    // add-on — so it deliberately names nothing that can move, hosting least of
+    // all. Changing it after a release strands everyone who already installed.
     browser_specific_settings: {
       gecko: {
-        id: 'sticky-reminder@andersseen.github.io',
+        id: 'sticky-reminder@andersseen',
         strict_min_version: '109.0',
       },
     },

@@ -11,8 +11,8 @@
 </p>
 
 <p>
-  <b><a href="https://andersseen.github.io/sticky-reminder/">Website</a></b> ·
-  <b><a href="https://andersseen.github.io/sticky-reminder/download">Install</a></b> ·
+  <b><a href="https://sticky-reminder.pages.dev/">Website</a></b> ·
+  <b><a href="https://sticky-reminder.pages.dev/download">Install</a></b> ·
   <b><a href="https://github.com/Andersseen/sticky-reminder/releases/latest">Releases</a></b> ·
   <b><a href="CONTRIBUTING.md">Contributing</a></b>
 </p>
@@ -58,7 +58,7 @@ Grab the build for your browser from the [latest release](https://github.com/And
 - **Chrome / Edge / Brave / Arc** — unzip `sticky-reminder-*-chrome.zip`, open `chrome://extensions`, turn on Developer mode, then **Load unpacked**.
 - **Firefox** — open `about:debugging#/runtime/this-firefox` and **Load Temporary Add-on** with `sticky-reminder-*-firefox.zip`.
 
-The [download page](https://andersseen.github.io/sticky-reminder/download) walks
+The [download page](https://sticky-reminder.pages.dev/download) walks
 through both, and every release also carries the packed `@sticky-reminder/core`
 and `@sticky-reminder/ui` tarballs.
 
@@ -197,7 +197,11 @@ setting once the site is real:
 | Variable | Scope | What it changes |
 |----------|-------|-----------------|
 | `SITE_URL` | Production only | Overrides `CF_PAGES_URL` with the real domain. Leave it off Preview, or every preview will claim to be production |
-| `SITE_CANONICAL` | Both, and as a repository variable for the GitHub Pages workflow | Two hosts serving the same pages read as duplicates. Set it to whichever origin should be indexed and every build points `<link rel="canonical">` there; unset, each deploy is canonical to itself |
+
+`https://sticky-reminder.pages.dev` is the site's published address, so it is the
+one that gets indexed: the GitHub Pages build points `<link rel="canonical">`
+there rather than at itself. Should that ever flip, the `SITE_CANONICAL`
+repository variable overrides it without touching the workflow.
 
 [`apps/web/public/_headers`](apps/web/public/_headers) adds caching and security
 headers on top, which only Cloudflare acts on.

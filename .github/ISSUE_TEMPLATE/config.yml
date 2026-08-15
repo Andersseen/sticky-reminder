@@ -1,7 +1,7 @@
 blank_issues_enabled: true
 contact_links:
   - name: Install instructions
-    url: https://andersseen.github.io/sticky-reminder/download
+    url: https://sticky-reminder.pages.dev/download
     about: How to load the extension in Chrome, Edge or Firefox.
   - name: Latest release
     url: https://github.com/Andersseen/sticky-reminder/releases/latest
