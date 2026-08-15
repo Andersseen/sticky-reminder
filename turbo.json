@@ -7,7 +7,8 @@
       "dependsOn": ["^build"],
       // Turbo runs tasks in strict env mode, so the site's deploy-time origin,
       // base path and canonical have to be declared to reach the Astro build.
-      "env": ["SITE_URL", "SITE_BASE", "SITE_CANONICAL"],
+      // CF_PAGES_URL is the one Cloudflare injects rather than the workflow.
+      "env": ["SITE_URL", "SITE_BASE", "SITE_CANONICAL", "CF_PAGES_URL"],
       "outputs": ["dist/**", "build/**", ".output/**", ".wxt/**"]
     },
     "dev": {

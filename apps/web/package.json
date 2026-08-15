@@ -21,7 +21,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "typescript": "^5.7.0",
-    "wrangler": "^4.123.0"
+    "typescript": "^5.7.0"
   }
 }
