@@ -1,0 +1,13 @@
+# Read by Cloudflare Pages from the build output. GitHub Pages ignores it (it
+# ends up as an inert /_headers file there), so nothing here may be load-bearing
+# for the site to work — it only hardens and speeds up the Cloudflare deploy.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+
+# Astro fingerprints everything under _astro/, so a new build means a new URL
+# and these can be cached for as long as the browser likes.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

@@ -10,8 +10,8 @@ export const SITE_DESCRIPTION =
 
 /**
  * Prefixes a path with the deployment base. GitHub Pages serves this site from
- * a sub-path, dev serves it from the root, so no internal link can be written
- * as a plain absolute path.
+ * a sub-path, while Cloudflare Pages and dev serve it from the root, so no
+ * internal link can be written as a plain absolute path.
  */
 export function url(path = '/'): string {
   const base = import.meta.env.BASE_URL.replace(/\/$/, '');

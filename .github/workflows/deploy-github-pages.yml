@@ -1,6 +1,7 @@
-name: Deploy site
+name: Deploy site (GitHub Pages)
 
-# Every push to main republishes the site, and each run shows up under the
+# One of the site's two deploy targets — see deploy-cloudflare-pages.yml for the
+# other. Every push to main republishes, and each run shows up under the
 # repository's Deployments as the `github-pages` environment.
 on:
   push:
@@ -9,7 +10,7 @@ on:
       - 'apps/web/**'
       - 'packages/**'
       - 'pnpm-lock.yaml'
-      - '.github/workflows/deploy-web.yml'
+      - '.github/workflows/deploy-github-pages.yml'
   workflow_dispatch:
 
 permissions:
@@ -50,6 +51,11 @@ jobs:
           # baked into the build rather than assumed to be the root.
           SITE_URL: ${{ steps.pages.outputs.origin }}
           SITE_BASE: ${{ steps.pages.outputs.base_path }}
+          # Both targets serve the same pages. Setting the SITE_CANONICAL
+          # repository variable to the Cloudflare URL makes that origin the one
+          # search engines index; leaving it unset keeps each deploy canonical
+          # to itself.
+          SITE_CANONICAL: ${{ vars.SITE_CANONICAL }}
         run: pnpm build --filter=@sticky-reminder/web
 
       - uses: actions/upload-pages-artifact@v3

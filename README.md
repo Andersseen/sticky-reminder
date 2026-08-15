@@ -4,7 +4,7 @@
 
 <p>
   <a href="https://github.com/Andersseen/sticky-reminder/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Andersseen/sticky-reminder/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="https://github.com/Andersseen/sticky-reminder/actions/workflows/deploy-web.yml"><img alt="Site deploy" src="https://github.com/Andersseen/sticky-reminder/actions/workflows/deploy-web.yml/badge.svg"></a>
+  <a href="https://github.com/Andersseen/sticky-reminder/actions/workflows/deploy-github-pages.yml"><img alt="GitHub Pages deploy" src="https://github.com/Andersseen/sticky-reminder/actions/workflows/deploy-github-pages.yml/badge.svg"></a>
   <a href="https://github.com/Andersseen/sticky-reminder/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/Andersseen/sticky-reminder?sort=semver&color=6366f1"></a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-6366f1"></a>
   <img alt="Manifest V3" src="https://img.shields.io/badge/manifest-v3-6366f1">
@@ -68,7 +68,7 @@ and `@sticky-reminder/ui` tarballs.
 sticky-reminder/
 ├── apps/
 │   ├── extension/   # The extension — WXT, popup, options page, background worker
-│   └── web/         # The site — Astro, deployed to GitHub Pages
+│   └── web/         # The site — Astro, deployed to Cloudflare Pages and GitHub Pages
 └── packages/
     ├── core/        # Reminder logic: pure TypeScript, no browser APIs
     └── ui/          # The two app-specific Web Components (Lit) + shared stylesheet
@@ -164,13 +164,52 @@ touching the UI:
 | Workflow | Trigger | What it does |
 |----------|---------|--------------|
 | [`ci.yml`](.github/workflows/ci.yml) | push and PR to `main` | Lint, unit tests, both browser builds, then both E2E suites |
-| [`deploy-web.yml`](.github/workflows/deploy-web.yml) | push to `main` touching the site | Builds the site with the Pages base path and publishes it — visible under **Deployments** |
+| [`deploy-github-pages.yml`](.github/workflows/deploy-github-pages.yml) | push to `main` touching the site | Builds the site with the `/sticky-reminder/` base path and publishes it to GitHub Pages |
 | [`release.yml`](.github/workflows/release.yml) | a `v*` tag | Zips the Chrome and Firefox builds, packs both libraries, and publishes a GitHub Release with them attached |
 
-Cutting a release:
+Cloudflare Pages is not in that table on purpose: it watches the repository
+itself and builds without going through Actions.
+
+### Deploying the site
+
+The site goes out to two hosts from the same source, differing only in where they
+serve it from: Cloudflare Pages serves the root of its own hostname, GitHub Pages
+serves a project sub-path. `SITE_URL` and `SITE_BASE` carry that difference into
+the Astro build, so no internal link may be written as a plain absolute path —
+`url()` in [`src/lib/site.ts`](apps/web/src/lib/site.ts) prefixes them.
+
+**Cloudflare Pages** is connected through the dashboard (Workers & Pages →
+Create → Pages → Connect to Git). It needs no GitHub secrets, and it builds every
+branch, so pull requests get a preview URL for free. The settings:
+
+| Field | Value |
+|-------|-------|
+| Root directory | *(repository root)* |
+| Build command | `pnpm build --filter=@sticky-reminder/web` |
+| Build output directory | `apps/web/dist` |
+
+Nothing else is required. `pnpm` comes from the `packageManager` field, Node from
+[`.node-version`](.node-version), and the deployment origin from Cloudflare's own
+`CF_PAGES_URL` — which is per-deployment, so previews get correct absolute URLs
+on their throwaway hostnames without any configuration. Two variables are worth
+setting once the site is real:
+
+| Variable | Scope | What it changes |
+|----------|-------|-----------------|
+| `SITE_URL` | Production only | Overrides `CF_PAGES_URL` with the real domain. Leave it off Preview, or every preview will claim to be production |
+| `SITE_CANONICAL` | Both, and as a repository variable for the GitHub Pages workflow | Two hosts serving the same pages read as duplicates. Set it to whichever origin should be indexed and every build points `<link rel="canonical">` there; unset, each deploy is canonical to itself |
+
+[`apps/web/public/_headers`](apps/web/public/_headers) adds caching and security
+headers on top, which only Cloudflare acts on.
+
+### Cutting a release
+
+Bump the version in the workspace `package.json` files and in the manifest
+([`wxt.config.ts`](apps/extension/wxt.config.ts)) — the release artifacts are
+named from it — then tag:
 
 ```bash
-git tag v1.1.0 && git push origin v1.1.0
+git tag v0.2.0 && git push origin v0.2.0
 ```
 
 ## License
