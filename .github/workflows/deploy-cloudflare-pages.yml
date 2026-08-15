@@ -1,0 +1,89 @@
+name: Deploy site (Cloudflare Pages)
+
+# The site's other deploy target — see deploy-github-pages.yml. Pushes to main
+# publish production; pull requests get a Cloudflare preview deployment, linked
+# back to the PR through the Deployments API.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/deploy-cloudflare-pages.yml'
+  pull_request:
+    paths:
+      - 'apps/web/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/deploy-cloudflare-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: cloudflare-pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build and publish
+    # A pull request from a fork cannot read the Cloudflare credentials, so the
+    # deploy would fail rather than be skipped.
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build site
+        env:
+          # Cloudflare Pages serves the project from the root of its own
+          # hostname, so unlike the GitHub Pages build there is no base path.
+          SITE_URL: ${{ vars.CLOUDFLARE_SITE_URL || 'https://sticky-reminder.pages.dev' }}
+          SITE_BASE: /
+          SITE_CANONICAL: ${{ vars.SITE_CANONICAL }}
+        run: pnpm build --filter=@sticky-reminder/web
+
+      - name: Publish to Cloudflare Pages
+        id: publish
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: pnpm
+          # `gitHubToken` is what lets the action record the deploy under the
+          # repository's Deployments, the same place the Pages deploy shows up.
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          # Cloudflare treats the project's production branch as production and
+          # every other branch name as a preview.
+          command: >-
+            pages deploy apps/web/dist
+            --project-name=${{ vars.CLOUDFLARE_PROJECT_NAME || 'sticky-reminder' }}
+            --branch=${{ github.head_ref || github.ref_name }}
+
+      - name: Summarise the deployment
+        run: |
+          {
+            echo "### Cloudflare Pages"
+            echo
+            echo "- Deployment: ${{ steps.publish.outputs.deployment-url }}"
+            if [ -n "${{ steps.publish.outputs.pages-deployment-alias-url }}" ]; then
+              echo "- Branch alias: ${{ steps.publish.outputs.pages-deployment-alias-url }}"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

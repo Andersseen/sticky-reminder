@@ -12,7 +12,7 @@ export default defineConfig({
     short_name: 'Sticky',
     description:
       'Create reminders in one click and let your browser notify you — daily, weekly or once. Everything stays on your device.',
-    version: '1.0.0',
+    version: '0.1.0',
     homepage_url: 'https://andersseen.github.io/sticky-reminder/',
     permissions: ['alarms', 'notifications', 'storage'],
     action: {

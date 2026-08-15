@@ -16,7 +16,18 @@ const {
 
 // Astro.site is unset in some dev setups; the fallback keeps the tags valid.
 const origin = Astro.site ?? new URL('http://localhost:4321');
-const canonical = new URL(Astro.url.pathname, origin);
+
+// The site ships to two origins — Cloudflare Pages at the root and GitHub Pages
+// under /<repo>/ — so without a shared canonical the two look like duplicates.
+// SITE_CANONICAL names the origin that owns the pages; the deploy base is
+// stripped off the path first, because it does not survive the origin swap.
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const route = Astro.url.pathname.slice(base.length) || '/';
+const canonicalOrigin = process.env.SITE_CANONICAL;
+const canonical = canonicalOrigin ? new URL(route, canonicalOrigin) : new URL(url(route), origin);
+
+// Unlike the canonical, the preview image is served by whichever origin the
+// page was fetched from, so it keeps that deploy's base path.
 const ogImage = new URL(url('/og.png'), origin);
 ---
 

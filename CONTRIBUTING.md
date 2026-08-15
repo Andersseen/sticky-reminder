@@ -18,7 +18,7 @@ Node 20+ and pnpm 10 are required — the exact pnpm version is pinned in
 | Path | What lives there |
 |------|------------------|
 | `apps/extension` | The browser extension: popup, options page, background worker |
-| `apps/web` | The site published to GitHub Pages |
+| `apps/web` | The site published to Cloudflare Pages and GitHub Pages |
 | `packages/core` | Reminder logic — pure TypeScript, no browser APIs |
 | `packages/ui` | The two app-specific Web Components and the shared stylesheet |
 

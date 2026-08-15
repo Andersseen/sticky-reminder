@@ -1,6 +1,6 @@
 {
   "name": "sticky-reminder",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "Browser extension + marketing site for sticky reminders",
   "packageManager": "pnpm@10.30.1",
