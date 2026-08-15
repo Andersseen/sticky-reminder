@@ -29,6 +29,6 @@
     "vitest": "^3.0.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["@biomejs/biome", "esbuild", "sharp", "spawn-sync"]
+    "onlyBuiltDependencies": ["@biomejs/biome", "esbuild", "sharp", "spawn-sync", "workerd"]
   }
 }
