@@ -12,7 +12,11 @@ export default defineConfig({
     short_name: 'Sticky',
     description:
       'Create reminders in one click and let your browser notify you — daily, weekly or once. Everything stays on your device.',
-    version: '0.1.0',
+    // `version` is deliberately absent: WXT falls back to this package's
+    // `package.json`, which keeps one number for the manifest, the zip
+    // filenames and the release tag. Bump it there and nowhere else — a second
+    // copy here silently wins and ships a build whose version contradicts the
+    // tag it was released under.
     homepage_url: 'https://sticky-reminder.pages.dev/',
     permissions: ['alarms', 'notifications', 'storage'],
     action: {
