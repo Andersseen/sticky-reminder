@@ -13,7 +13,7 @@
     "lint": "turbo run lint",
     "format": "biome format --write .",
     "check": "biome check --write .",
-    "test": "vitest run",
+    "test": "turbo run build --filter='./packages/*' && vitest run",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "clean": "turbo run clean && rm -rf node_modules",
