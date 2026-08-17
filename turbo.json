@@ -18,6 +18,12 @@
     "lint": {
       "dependsOn": ["^build"]
     },
+    // Nothing runs `turbo run test` — the root script drives vitest directly so
+    // that one run covers every project and the coverage thresholds apply to
+    // the whole workspace. That means this `dependsOn` never fires, and the
+    // root script builds the libraries itself; the tests import them through
+    // their package entries, which point at dist. Kept so a direct
+    // `turbo run test` is not silently missing the build.
     "test": {
       "dependsOn": ["^build"]
     },
