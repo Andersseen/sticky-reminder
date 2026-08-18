@@ -15,6 +15,7 @@
   <b><a href="https://sticky-reminder.pages.dev/download">Install</a></b> ·
   <b><a href="https://sticky-reminder.pages.dev/privacy">Privacy</a></b> ·
   <b><a href="https://github.com/Andersseen/sticky-reminder/releases/latest">Releases</a></b> ·
+  <b><a href="CHANGELOG.md">Changelog</a></b> ·
   <b><a href="CONTRIBUTING.md">Contributing</a></b>
 </p>
 
@@ -50,6 +51,7 @@ two packages both are built from.
 | **Native notifications** | Reminders fire through the browser's own notification system, so they arrive whether or not the tab that created them still exists. |
 | **Daily and weekly repeats** | A repeating reminder rolls forward the moment it fires, and skips the periods it slept through instead of firing a backlog. |
 | **Overdue at a glance** | Late reminders turn red and say how late. Search, filter and counters live on the options page. |
+| **Portable backup** | Export a readable JSON copy and merge it back in from the options page. The file stays under your control. |
 | **Local only** | `alarms`, `notifications` and `storage`. No host permissions, so the extension cannot read a single page you visit. |
 
 ## Install

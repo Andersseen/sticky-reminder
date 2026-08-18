@@ -12,7 +12,7 @@
 
 **Description:**
 
-> Create reminders from the browser toolbar and receive a native notification when each one is due. Choose a one-time, daily or weekly schedule, add an optional note, and manage everything from a searchable options page.
+> Create reminders from the browser toolbar and receive a native notification when each one is due. Choose a one-time, daily or weekly schedule, add an optional note, and manage everything from a searchable options page. Export or restore a local JSON backup whenever you need one.
 >
 > All reminder data stays in local extension storage on your device. Sticky Reminder has no account, backend, analytics, advertising or tracking, and it does not request access to websites you visit.
 >
@@ -36,4 +36,3 @@
   `FIREFOX_REVIEW.md`.
 - Submit `sticky-reminder-<version>-firefox.zip` as the add-on and
   `sticky-reminder-<version>-sources.zip` as the corresponding source code.
-

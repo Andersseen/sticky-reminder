@@ -5,6 +5,16 @@ const LEGACY_STORAGE_KEY = 'reminders';
 const SCHEMA_VERSION_KEY = 'stickyReminder.schemaVersion';
 const REMINDER_KEY_PREFIX = 'stickyReminder.reminder.';
 const CURRENT_SCHEMA_VERSION = 1;
+const BACKUP_FORMAT = 'sticky-reminder-backup';
+const BACKUP_VERSION = 1;
+const MAX_BACKUP_REMINDERS = 10_000;
+
+export interface ReminderBackup {
+  format: typeof BACKUP_FORMAT;
+  version: typeof BACKUP_VERSION;
+  exportedAt: string;
+  reminders: Reminder[];
+}
 
 function storageKey(id: string): string {
   return `${REMINDER_KEY_PREFIX}${id}`;
@@ -30,6 +40,37 @@ export function isReminder(value: unknown): value is Reminder {
     (reminder.repeat === 'none' || reminder.repeat === 'daily' || reminder.repeat === 'weekly') &&
     typeof reminder.completed === 'boolean'
   );
+}
+
+export function createReminderBackup(
+  reminders: Reminder[],
+  exportedAt = new Date(),
+): ReminderBackup {
+  return {
+    format: BACKUP_FORMAT,
+    version: BACKUP_VERSION,
+    exportedAt: exportedAt.toISOString(),
+    reminders,
+  };
+}
+
+export function parseReminderBackup(value: unknown): ReminderBackup {
+  if (!value || typeof value !== 'object') throw new Error('The backup is not a JSON object.');
+  const backup = value as Record<string, unknown>;
+  if (backup.format !== BACKUP_FORMAT || backup.version !== BACKUP_VERSION) {
+    throw new Error('This is not a supported Sticky Reminder backup.');
+  }
+  if (!isValidDate(backup.exportedAt) || !Array.isArray(backup.reminders)) {
+    throw new Error('The backup metadata is invalid.');
+  }
+  if (backup.reminders.length > MAX_BACKUP_REMINDERS) {
+    throw new Error(`The backup contains more than ${MAX_BACKUP_REMINDERS} reminders.`);
+  }
+  if (!backup.reminders.every(isReminder)) {
+    throw new Error('The backup contains an invalid reminder.');
+  }
+
+  return backup as unknown as ReminderBackup;
 }
 
 /**
@@ -103,4 +144,15 @@ export async function removeReminder(id: string): Promise<void> {
 export async function updateStoredReminder(updated: Reminder): Promise<void> {
   await ensureCurrentSchema();
   await browser.storage.local.set({ [storageKey(updated.id)]: updated });
+}
+
+export async function importReminderBackup(value: unknown): Promise<{
+  imported: number;
+  total: number;
+}> {
+  const backup = parseReminderBackup(value);
+  const merged = new Map((await loadReminders()).map((reminder) => [reminder.id, reminder]));
+  for (const reminder of backup.reminders) merged.set(reminder.id, reminder);
+  await saveReminders([...merged.values()]);
+  return { imported: backup.reminders.length, total: merged.size };
 }

@@ -8,7 +8,15 @@ vi.mock('wxt/browser', () => ({
 
 const { alarmNameFor, reminderIdFromAlarmName, scheduleReminderAlarm, syncReminderAlarms } =
   await import('../utils/alarms');
-const { addReminder, isReminder, loadReminders, saveReminders } = await import('../utils/storage');
+const {
+  addReminder,
+  createReminderBackup,
+  importReminderBackup,
+  isReminder,
+  loadReminders,
+  parseReminderBackup,
+  saveReminders,
+} = await import('../utils/storage');
 
 beforeEach(() => {
   fakeBrowser.reset();
@@ -73,6 +81,58 @@ describe('storage', () => {
         completed: false,
       }),
     ).toBe(false);
+  });
+
+  it('creates and parses a versioned portable backup', () => {
+    const reminder = createReminder({
+      title: 'Portable',
+      body: '',
+      scheduledAt: new Date(Date.now() + 60_000).toISOString(),
+      repeat: 'weekly',
+    });
+    const exportedAt = new Date('2026-08-18T12:00:00.000Z');
+    const backup = createReminderBackup([reminder], exportedAt);
+
+    expect(parseReminderBackup(JSON.parse(JSON.stringify(backup)))).toEqual(backup);
+    expect(backup.exportedAt).toBe(exportedAt.toISOString());
+  });
+
+  it('rejects unsupported or partially invalid backups', () => {
+    expect(() => parseReminderBackup({ format: 'other', version: 1 })).toThrow(/supported/);
+    expect(() =>
+      parseReminderBackup({
+        format: 'sticky-reminder-backup',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        reminders: [{ id: 'broken' }],
+      }),
+    ).toThrow(/invalid reminder/);
+  });
+
+  it('merges imported reminders and replaces matching ids', async () => {
+    const current = createReminder({
+      title: 'Current',
+      body: '',
+      scheduledAt: new Date(Date.now() + 60_000).toISOString(),
+      repeat: 'none',
+    });
+    const extra = createReminder({
+      title: 'Extra',
+      body: '',
+      scheduledAt: new Date(Date.now() + 120_000).toISOString(),
+      repeat: 'daily',
+    });
+    await saveReminders([current]);
+
+    const result = await importReminderBackup(
+      createReminderBackup([{ ...current, title: 'Restored' }, extra]),
+    );
+
+    expect(result).toEqual({ imported: 2, total: 2 });
+    expect((await loadReminders()).map((reminder) => reminder.title).sort()).toEqual([
+      'Extra',
+      'Restored',
+    ]);
   });
 });
 

@@ -1,6 +1,6 @@
 {
   "name": "@sticky-reminder/extension",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
   "description": "Sticky Reminder browser extension (WXT + Web Components)",
   "type": "module",

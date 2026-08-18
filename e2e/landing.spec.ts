@@ -15,7 +15,7 @@ test('the landing renders with the design system applied', async ({ page }) => {
   await expect(cta).toBeVisible();
   await expect(cta).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
 
-  await expect(page.locator('#features .tile')).toHaveCount(6);
+  await expect(page.locator('#features .tile')).toHaveCount(7);
   await expect(page.locator('#privacy .permission')).toHaveCount(3);
 });
 

@@ -16,7 +16,7 @@
 
 > Sticky Reminder puts a small, focused reminder tool in your browser toolbar.
 >
-> Create a reminder in one click, add an optional note, choose its time, and receive a native browser notification when it is due. Reminders can run once, every day or every week. The options page lets you search, filter, complete and delete them.
+> Create a reminder in one click, add an optional note, choose its time, and receive a native browser notification when it is due. Reminders can run once, every day or every week. The options page lets you search, filter, complete and delete them, plus export or restore a local JSON backup.
 >
 > Private by design:
 > • reminders stay in local extension storage on your device
@@ -56,4 +56,3 @@ locally only. Select no collected-data categories in the dashboard.
 - Screenshots: `../store-assets/screenshot-options-light.png` and
   `../store-assets/screenshot-options-dark.png` (1280 × 800)
 - Small promotional tile: `../store-assets/promo-small.png` (440 × 280)
-

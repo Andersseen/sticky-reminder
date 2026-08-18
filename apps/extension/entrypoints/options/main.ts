@@ -1,11 +1,18 @@
 import '@andersseen/web-components/components/and-card.js';
+import '@andersseen/web-components/components/and-button.js';
 import '@andersseen/web-components/components/and-icon.js';
 import './style.css';
 import { MotionController } from '@andersseen/motion';
 import { type Reminder, listReminders, toggleReminderCompletion } from '@sticky-reminder/core';
 import { isOverdue, registerStickyIcons } from '@sticky-reminder/ui';
-import { cancelReminderAlarm, scheduleReminderAlarm } from '../../utils/alarms';
-import { loadReminders, removeReminder, updateStoredReminder } from '../../utils/storage';
+import { cancelReminderAlarm, scheduleReminderAlarm, syncReminderAlarms } from '../../utils/alarms';
+import {
+  createReminderBackup,
+  importReminderBackup,
+  loadReminders,
+  removeReminder,
+  updateStoredReminder,
+} from '../../utils/storage';
 
 registerStickyIcons();
 
@@ -14,6 +21,12 @@ type Filter = 'all' | 'pending' | 'completed';
 const container = document.getElementById('reminders') as HTMLElement;
 const filterBar = document.getElementById('filters') as HTMLElement;
 const search = document.getElementById('search') as HTMLInputElement;
+const exportBackup = document.getElementById('export-backup') as HTMLElement;
+const importBackup = document.getElementById('import-backup') as HTMLElement;
+const backupFile = document.getElementById('backup-file') as HTMLInputElement;
+const backupStatus = document.getElementById('backup-status') as HTMLElement;
+
+const MAX_BACKUP_BYTES = 5 * 1024 * 1024;
 
 // The static chrome animates once; list rows do not, so a row that renders
 // below the fold is never left waiting at opacity 0 for a scroll.
@@ -108,6 +121,44 @@ function revealHighlighted() {
 async function refreshList() {
   renderList(await loadReminders());
 }
+
+function setBackupStatus(message: string, error = false) {
+  backupStatus.textContent = message;
+  backupStatus.dataset.state = error ? 'error' : 'success';
+}
+
+exportBackup.addEventListener('click', async () => {
+  const backup = createReminderBackup(await loadReminders());
+  const blob = new Blob([`${JSON.stringify(backup, null, 2)}\n`], { type: 'application/json' });
+  const href = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = href;
+  anchor.download = `sticky-reminder-backup-${backup.exportedAt.slice(0, 10)}.json`;
+  anchor.click();
+  URL.revokeObjectURL(href);
+  setBackupStatus(`Exported ${backup.reminders.length} reminders.`);
+});
+
+importBackup.addEventListener('click', () => backupFile.click());
+
+backupFile.addEventListener('change', async () => {
+  const file = backupFile.files?.[0];
+  backupFile.value = '';
+  if (!file) return;
+
+  try {
+    if (file.size > MAX_BACKUP_BYTES) throw new Error('The backup is larger than 5 MB.');
+    const result = await importReminderBackup(JSON.parse(await file.text()));
+    await syncReminderAlarms();
+    await refreshList();
+    setBackupStatus(`Imported ${result.imported}; ${result.total} reminders now stored.`);
+  } catch (error) {
+    setBackupStatus(
+      error instanceof Error ? error.message : 'The backup could not be imported.',
+      true,
+    );
+  }
+});
 
 filterBar.addEventListener('click', (event) => {
   const tab = (event.target as HTMLElement).closest<HTMLElement>('[data-filter]');

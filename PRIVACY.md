@@ -44,6 +44,13 @@ Browser backup, enterprise-management or device-sync features outside Sticky
 Reminder's control may handle local browser data according to the browser or
 device provider's own policies.
 
+## Local backup files
+
+The options page can export reminders to a JSON file and import that file later.
+Both actions are initiated by you. Export uses the browser's normal download
+mechanism, import reads only the file you select, and Sticky Reminder does not
+upload either the file or its contents.
+
 ## Children's privacy
 
 Sticky Reminder does not knowingly collect personal information from anyone,
@@ -63,4 +70,3 @@ For privacy questions, open a
 without including sensitive reminder content. Security vulnerabilities should
 be reported privately through the repository's
 [security advisory form](https://github.com/Andersseen/sticky-reminder/security/advisories/new).
-
