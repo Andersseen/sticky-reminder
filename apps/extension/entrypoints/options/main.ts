@@ -6,6 +6,7 @@ import { MotionController } from '@andersseen/motion';
 import { type Reminder, listReminders, toggleReminderCompletion } from '@sticky-reminder/core';
 import { isOverdue, registerStickyIcons } from '@sticky-reminder/ui';
 import { cancelReminderAlarm, scheduleReminderAlarm, syncReminderAlarms } from '../../utils/alarms';
+import { sendTestNotification } from '../../utils/notifications';
 import {
   createReminderBackup,
   importReminderBackup,
@@ -25,6 +26,8 @@ const exportBackup = document.getElementById('export-backup') as HTMLElement;
 const importBackup = document.getElementById('import-backup') as HTMLElement;
 const backupFile = document.getElementById('backup-file') as HTMLInputElement;
 const backupStatus = document.getElementById('backup-status') as HTMLElement;
+const testNotification = document.getElementById('test-notification') as HTMLElement;
+const notificationStatus = document.getElementById('notification-status') as HTMLElement;
 
 const MAX_BACKUP_BYTES = 5 * 1024 * 1024;
 
@@ -127,6 +130,11 @@ function setBackupStatus(message: string, error = false) {
   backupStatus.dataset.state = error ? 'error' : 'success';
 }
 
+function setNotificationStatus(message: string, error = false) {
+  notificationStatus.textContent = message;
+  notificationStatus.dataset.state = error ? 'error' : 'success';
+}
+
 exportBackup.addEventListener('click', async () => {
   const backup = createReminderBackup(await loadReminders());
   const blob = new Blob([`${JSON.stringify(backup, null, 2)}\n`], { type: 'application/json' });
@@ -140,6 +148,17 @@ exportBackup.addEventListener('click', async () => {
 });
 
 importBackup.addEventListener('click', () => backupFile.click());
+
+testNotification.addEventListener('click', async () => {
+  try {
+    await sendTestNotification();
+    setNotificationStatus(
+      'Test notification sent. If nothing appeared, check browser and OS notification settings.',
+    );
+  } catch {
+    setNotificationStatus('Could not send a notification. Check browser permissions.', true);
+  }
+});
 
 backupFile.addEventListener('change', async () => {
   const file = backupFile.files?.[0];

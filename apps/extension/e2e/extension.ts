@@ -1,3 +1,6 @@
+import { mkdtemp } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { type BrowserContext, chromium } from '@playwright/test';
 
@@ -16,7 +19,8 @@ export interface LoadedExtension {
  * headless-shell, which cannot load extensions at all.
  */
 export async function loadExtension(): Promise<LoadedExtension> {
-  const context = await chromium.launchPersistentContext('', {
+  const userDataDir = await mkdtemp(join(tmpdir(), 'sticky-reminder-e2e-'));
+  const context = await chromium.launchPersistentContext(userDataDir, {
     channel: 'chromium',
     args: [`--disable-extensions-except=${EXTENSION_PATH}`, `--load-extension=${EXTENSION_PATH}`],
   });
