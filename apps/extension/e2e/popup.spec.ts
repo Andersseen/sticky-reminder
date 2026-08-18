@@ -133,11 +133,13 @@ test('a fired repeating alarm reschedules instead of completing', async () => {
   // a reminder coming due rather than one triggered an hour early — those are
   // different cases, and only the first should roll the date forward.
   const before = await page.evaluate(async () => {
-    const store = await chrome.storage.local.get('reminders');
-    const reminders = store.reminders as { id: string; scheduledAt: string }[];
-    reminders[0].scheduledAt = new Date(Date.now() - 1000).toISOString();
-    await chrome.storage.local.set({ reminders });
-    return reminders[0];
+    const store = await chrome.storage.local.get(null);
+    const [key, reminder] = Object.entries(store).find(([name]) =>
+      name.startsWith('stickyReminder.reminder.'),
+    ) as [string, { id: string; scheduledAt: string }];
+    const overdue = { ...reminder, scheduledAt: new Date(Date.now() - 1000).toISOString() };
+    await chrome.storage.local.set({ [key]: overdue });
+    return overdue;
   });
 
   const worker = context.serviceWorkers()[0];
@@ -148,8 +150,10 @@ test('a fired repeating alarm reschedules instead of completing', async () => {
 
   const readReminder = () =>
     page.evaluate(async () => {
-      const store = await chrome.storage.local.get('reminders');
-      return (store.reminders as { scheduledAt: string; completed: boolean }[])[0];
+      const store = await chrome.storage.local.get(null);
+      return Object.entries(store).find(([name]) =>
+        name.startsWith('stickyReminder.reminder.'),
+      )?.[1] as { scheduledAt: string; completed: boolean };
     });
 
   // The background awaits notifications.create before advancing, so a rolled

@@ -49,7 +49,13 @@ async function openOptions(query = ''): Promise<Page> {
   const page = await context.newPage();
   await page.goto(`chrome-extension://${extensionId}/options.html`);
   await page.evaluate(async (reminders) => {
-    await chrome.storage.local.set({ reminders });
+    await chrome.storage.local.clear();
+    await chrome.storage.local.set({
+      'stickyReminder.schemaVersion': 1,
+      ...Object.fromEntries(
+        reminders.map((reminder) => [`stickyReminder.reminder.${reminder.id}`, reminder]),
+      ),
+    });
   }, REMINDERS);
 
   // Reload with the query string in place: the highlight is read once, at load.
@@ -108,6 +114,25 @@ test('deleting from the options page clears the alarm too', async () => {
 
   await expect(page.locator('sr-reminder-item')).toHaveCount(2);
   expect(await page.evaluate(() => chrome.alarms.getAll())).toHaveLength(0);
+
+  await page.close();
+});
+
+test('an existing v0.1.0 reminder is migrated on first load', async () => {
+  const page = await context.newPage();
+  await page.goto(`chrome-extension://${extensionId}/options.html`);
+  await page.evaluate(async (reminder) => {
+    await chrome.storage.local.clear();
+    await chrome.storage.local.set({ reminders: [reminder] });
+  }, REMINDERS[1]);
+
+  await page.reload();
+
+  await expect(page.locator('sr-reminder-item')).toHaveCount(1);
+  await expect(page.locator('sr-reminder-item')).toContainText('Daily standup');
+  const keys = await page.evaluate(async () => Object.keys(await chrome.storage.local.get(null)));
+  expect(keys).not.toContain('reminders');
+  expect(keys.some((key) => key.startsWith('stickyReminder.reminder.'))).toBe(true);
 
   await page.close();
 });

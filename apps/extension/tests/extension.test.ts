@@ -8,7 +8,7 @@ vi.mock('wxt/browser', () => ({
 
 const { alarmNameFor, reminderIdFromAlarmName, scheduleReminderAlarm, syncReminderAlarms } =
   await import('../utils/alarms');
-const { loadReminders, saveReminders } = await import('../utils/storage');
+const { addReminder, isReminder, loadReminders, saveReminders } = await import('../utils/storage');
 
 beforeEach(() => {
   fakeBrowser.reset();
@@ -26,6 +26,53 @@ describe('storage', () => {
     const loaded = await loadReminders();
     expect(loaded).toHaveLength(1);
     expect(loaded[0].title).toBe('T');
+  });
+
+  it('migrates the legacy array without keeping malformed records', async () => {
+    const reminder = createReminder({
+      title: 'Legacy',
+      body: '',
+      scheduledAt: new Date(Date.now() + 60_000).toISOString(),
+      repeat: 'none',
+    });
+    await fakeBrowser.storage.local.set({ reminders: [reminder, { id: 'broken' }] });
+
+    expect(await loadReminders()).toEqual([reminder]);
+    expect((await fakeBrowser.storage.local.get('reminders')).reminders).toBeUndefined();
+  });
+
+  it('keeps simultaneous additions because each reminder has its own key', async () => {
+    const a = createReminder({
+      title: 'A',
+      body: '',
+      scheduledAt: new Date(Date.now() + 60_000).toISOString(),
+      repeat: 'none',
+    });
+    const b = createReminder({
+      title: 'B',
+      body: '',
+      scheduledAt: new Date(Date.now() + 120_000).toISOString(),
+      repeat: 'none',
+    });
+
+    await Promise.all([addReminder(a), addReminder(b)]);
+    expect((await loadReminders()).map((reminder) => reminder.title).sort()).toEqual(['A', 'B']);
+  });
+
+  it('rejects records with invalid dates or fields', () => {
+    expect(isReminder({ id: 'broken' })).toBe(false);
+    expect(
+      isReminder({
+        id: 'x',
+        title: 'T',
+        body: '',
+        scheduledAt: 'not-a-date',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        repeat: 'none',
+        completed: false,
+      }),
+    ).toBe(false);
   });
 });
 
@@ -71,7 +118,8 @@ describe('alarms', () => {
     expect(alarms[0].scheduledTime).toBeGreaterThan(Date.now());
   });
 
-  it('does not schedule anything for an overdue one-off reminder', async () => {
+  it('schedules an overdue one-off immediately so it is not lost', async () => {
+    const before = Date.now();
     const reminder = createReminder({
       title: 'T',
       body: 'B',
@@ -80,7 +128,9 @@ describe('alarms', () => {
     });
     await scheduleReminderAlarm(reminder);
 
-    expect(await fakeBrowser.alarms.getAll()).toHaveLength(0);
+    const alarms = await fakeBrowser.alarms.getAll();
+    expect(alarms).toHaveLength(1);
+    expect(alarms[0].scheduledTime).toBeGreaterThanOrEqual(before);
   });
 });
 
@@ -107,5 +157,14 @@ describe('syncReminderAlarms', () => {
 
     const alarms = await fakeBrowser.alarms.getAll();
     expect(alarms.map((alarm) => alarm.name)).toEqual([alarmNameFor(pending)]);
+  });
+
+  it('clears reminder alarms whose stored reminder no longer exists', async () => {
+    await fakeBrowser.alarms.create('reminder-orphan', { when: Date.now() + 60_000 });
+    await fakeBrowser.alarms.create('unrelated', { when: Date.now() + 60_000 });
+
+    await syncReminderAlarms();
+
+    expect((await fakeBrowser.alarms.getAll()).map((alarm) => alarm.name)).toEqual(['unrelated']);
   });
 });

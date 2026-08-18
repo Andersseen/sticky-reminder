@@ -53,7 +53,15 @@ try {
   const page = await context.newPage();
 
   await page.goto(`chrome-extension://${extensionId}/options.html`);
-  await page.evaluate(async (data) => chrome.storage.local.set({ reminders: data }), reminders);
+  await page.evaluate(async (data) => {
+    await chrome.storage.local.clear();
+    await chrome.storage.local.set({
+      'stickyReminder.schemaVersion': 1,
+      ...Object.fromEntries(
+        data.map((reminder) => [`stickyReminder.reminder.${reminder.id}`, reminder]),
+      ),
+    });
+  }, reminders);
   await page.reload();
   await page.locator('sr-reminder-item').first().waitFor();
   await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' });
