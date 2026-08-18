@@ -57,6 +57,7 @@ jobs:
           # itself; the repository variable overrides it if that ever flips.
           SITE_CANONICAL: ${{ vars.SITE_CANONICAL || 'https://sticky-reminder.pages.dev' }}
           PUBLIC_CHROME_STORE_URL: ${{ vars.PUBLIC_CHROME_STORE_URL }}
+          PUBLIC_EDGE_STORE_URL: ${{ vars.PUBLIC_EDGE_STORE_URL }}
           PUBLIC_FIREFOX_STORE_URL: ${{ vars.PUBLIC_FIREFOX_STORE_URL }}
         run: pnpm build --filter=@sticky-reminder/web
 

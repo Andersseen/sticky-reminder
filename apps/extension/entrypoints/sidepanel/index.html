@@ -3,47 +3,42 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sticky Reminder</title>
+    <meta name="manifest.open_at_install" content="false" />
+    <title>Sticky Reminder Sidebar</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
     <header class="sr-topbar">
       <div class="sr-brand">
         <img class="sr-brand-mark" src="/icon/48.png" alt="" width="22" height="22" />
-        <span class="sr-brand-name">Sticky Reminder</span>
+        <div class="brand-copy">
+          <span class="sr-brand-name">Sticky Reminder</span>
+          <span class="sr-brand-tag">Beside your browser, not over it</span>
+        </div>
       </div>
-      <div class="toolbar-actions">
-        <and-button
-          id="open-sidebar"
-          variant="ghost"
-          size="icon"
-          aria-label="Open sidebar"
-          title="Open sidebar"
-          hidden
-        >
-          <and-icon name="list" size="16"></and-icon>
-        </and-button>
-        <and-button
-          id="open-options"
-          variant="ghost"
-          size="icon"
-          aria-label="Open all reminders"
-          title="Open all reminders"
-        >
-          <and-icon name="settings" size="16"></and-icon>
-        </and-button>
-      </div>
+      <and-button
+        id="open-options"
+        variant="ghost"
+        size="icon"
+        aria-label="Open all reminders"
+        title="Open all reminders"
+      >
+        <and-icon name="settings" size="16"></and-icon>
+      </and-button>
     </header>
 
-    <main class="popup" and-layout="vertical gap:md p:md">
-      <and-card padded>
+    <main class="sidepanel-shell" and-layout="vertical gap:lg p:md">
+      <section class="composer-panel">
         <h1 class="heading" id="form-heading">New reminder</h1>
         <sr-reminder-form submit-label="Remind me"></sr-reminder-form>
-      </and-card>
+      </section>
 
-      <section and-layout="vertical gap:xs">
+      <section class="reminder-panel" and-layout="vertical gap:sm">
         <div class="list-head">
-          <h2 class="sr-label">Your reminders</h2>
+          <div>
+            <h2 class="sr-label">Your reminders</h2>
+            <p class="sr-hint">Keep this open while you browse.</p>
+          </div>
           <div class="sr-segmented" role="tablist" aria-label="Filter reminders" id="filters">
             <button
               type="button"

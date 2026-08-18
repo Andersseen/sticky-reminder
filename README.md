@@ -21,10 +21,11 @@
 
 </div>
 
-**Sticky Reminder** is a browser extension for reminders that reach you: write one in
-a click, get a native notification when it is due, and repeat it daily or weekly if
-it should come back. Every reminder is stored on your own device — no account, no
-server, no network requests at all.
+**Sticky Reminder** is a browser extension for reminders that reach you: keep it
+beside the browser viewport as a native sidebar, write one in a click, get a
+native notification when it is due, and repeat it daily or weekly if it should
+come back. Every reminder is stored on your own device — no account, no server,
+no network requests at all.
 
 The repo is a pnpm + Turborepo monorepo holding the extension, its website, and the
 two packages both are built from.
@@ -47,7 +48,7 @@ two packages both are built from.
 
 | | |
 |---|---|
-| **One-click capture** | The popup opens on the form. Title, optional note, a time — or a shortcut: in an hour, this evening, tomorrow at nine. |
+| **Sidebar-first capture** | The sidebar opens on the form and stays beside the page. The toolbar popup remains available for a compact one-click flow. |
 | **Native notifications** | Reminders fire through the browser's own notification system, so they arrive whether or not the tab that created them still exists. |
 | **Daily and weekly repeats** | A repeating reminder rolls forward the moment it fires, and skips the periods it slept through instead of firing a backlog. |
 | **Overdue at a glance** | Late reminders turn red and say how late. Search, filter and counters live on the options page. |
@@ -58,8 +59,8 @@ two packages both are built from.
 
 Grab the build for your browser from the [latest release](https://github.com/Andersseen/sticky-reminder/releases/latest):
 
-- **Chrome / Edge / Brave / Arc** — unzip `sticky-reminder-*-chrome.zip`, open `chrome://extensions`, turn on Developer mode, then **Load unpacked**.
-- **Firefox** — open `about:debugging#/runtime/this-firefox` and **Load Temporary Add-on** with `sticky-reminder-*-firefox.zip`.
+- **Chrome / Edge / Brave / Arc** — unzip `sticky-reminder-*-chrome.zip`, open `chrome://extensions` or `edge://extensions`, turn on Developer mode, then **Load unpacked**. Pin the toolbar icon and use its sidebar button where supported.
+- **Firefox** — open `about:debugging#/runtime/this-firefox` and **Load Temporary Add-on** with `sticky-reminder-*-firefox.zip`. Open it from Firefox's sidebar menu.
 
 The [download page](https://sticky-reminder.pages.dev/download) walks
 through both. Releases also include the source archive required for Firefox
@@ -70,7 +71,7 @@ review and SHA-256 checksums for every download.
 ```
 sticky-reminder/
 ├── apps/
-│   ├── extension/   # The extension — WXT, popup, options page, background worker
+│   ├── extension/   # The extension — WXT, sidebar, popup, options, background worker
 │   └── web/         # The site — Astro, deployed to Cloudflare Pages and GitHub Pages
 └── packages/
     ├── core/        # Reminder logic: pure TypeScript, no browser APIs
@@ -84,14 +85,17 @@ that does touch `browser.alarms` or `browser.storage` lives in
 
 ```mermaid
 flowchart LR
-  P["Popup<br/>create · edit · filter"] --> S[("browser.storage.local")]
+  SP["Sidebar<br/>create · edit · filter"] --> S[("browser.storage.local")]
+  P["Popup<br/>quick create · launcher"] --> S
   O["Options page<br/>search · stats"] --> S
-  P --> A[["browser.alarms"]]
+  SP --> A[["browser.alarms"]]
+  P --> A
   A -- fires --> B["Background worker"]
   B --> N(["Notification"])
   B -- "advanceReminder()" --> S
   B --> A
   C{{"@sticky-reminder/core"}} -.-> P
+  C -.-> SP
   C -.-> O
   C -.-> B
 ```
@@ -119,6 +123,8 @@ Extension-only:
 ```bash
 cd apps/extension
 pnpm dev             # WXT dev server with hot reload
+pnpm build           # Chromium MV3 build, including popup and sidepanel
+pnpm build:firefox   # Firefox build, including sidebar_action
 pnpm zip             # sticky-reminder-<version>-chrome.zip in .output/
 pnpm zip:firefox     # the Firefox build
 pnpm test:e2e        # loads the unpacked build into a real Chromium
@@ -202,6 +208,7 @@ setting once the site is real:
 |----------|-------|-----------------|
 | `SITE_URL` | Production only | Overrides `CF_PAGES_URL` with the real domain. Leave it off Preview, or every preview will claim to be production |
 | `PUBLIC_CHROME_STORE_URL` | Production | Shows the signed Chrome Web Store install button once the listing exists |
+| `PUBLIC_EDGE_STORE_URL` | Production | Shows the signed Microsoft Edge Add-ons install button once the listing exists |
 | `PUBLIC_FIREFOX_STORE_URL` | Production | Shows the signed Firefox Add-ons install button once the listing exists |
 
 `https://sticky-reminder.pages.dev` is the site's published address, so it is the

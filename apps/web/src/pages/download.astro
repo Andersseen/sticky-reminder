@@ -2,13 +2,14 @@
 import Layout from '../layouts/Layout.astro';
 import {
   CHROME_STORE_URL,
+  EDGE_STORE_URL,
   FIREFOX_STORE_URL,
   ISSUES_URL,
   LATEST_RELEASE_URL,
   REPO_URL,
 } from '../lib/site';
 
-const hasOfficialStore = Boolean(CHROME_STORE_URL || FIREFOX_STORE_URL);
+const hasOfficialStore = Boolean(CHROME_STORE_URL || EDGE_STORE_URL || FIREFOX_STORE_URL);
 ---
 
 <Layout
@@ -34,6 +35,11 @@ const hasOfficialStore = Boolean(CHROME_STORE_URL || FIREFOX_STORE_URL);
               Install for Chrome
             </and-button>
           )}
+          {EDGE_STORE_URL && (
+            <and-button href={EDGE_STORE_URL} size="lg" rel="noreferrer">
+              Install for Edge
+            </and-button>
+          )}
           {FIREFOX_STORE_URL && (
             <and-button href={FIREFOX_STORE_URL} size="lg" rel="noreferrer">
               Install for Firefox
@@ -53,8 +59,8 @@ const hasOfficialStore = Boolean(CHROME_STORE_URL || FIREFOX_STORE_URL);
       <p class="eyebrow">Manual installation</p>
       <h2 class="section-title">Verified release builds</h2>
       <p class="section-lead">
-        Useful before the store review finishes, for testing, or if you prefer to inspect the ZIP
-        yourself.
+        Useful before store review finishes, for development testing, or if you prefer to inspect
+        the ZIP yourself.
       </p>
       <div class="hero-actions">
         <and-button href={LATEST_RELEASE_URL} size="lg" rel="noreferrer">
@@ -72,9 +78,9 @@ const hasOfficialStore = Boolean(CHROME_STORE_URL || FIREFOX_STORE_URL);
         <p class="muted">Anything Chromium, using the MV3 build.</p>
         <ol>
           <li>Download <code>sticky-reminder-*-chrome.zip</code> from the latest release and unzip it.</li>
-          <li>Open <code>chrome://extensions</code> and turn on <strong>Developer mode</strong>.</li>
+          <li>Open <code>chrome://extensions</code> or <code>edge://extensions</code> and turn on <strong>Developer mode</strong>.</li>
           <li>Click <strong>Load unpacked</strong> and choose the unzipped folder.</li>
-          <li>Pin the icon so the popup is always one click away.</li>
+          <li>Pin the icon, then use the popup’s sidebar button to keep Sticky Reminder beside the page.</li>
         </ol>
       </article>
 
@@ -85,9 +91,26 @@ const hasOfficialStore = Boolean(CHROME_STORE_URL || FIREFOX_STORE_URL);
           <li>Download <code>sticky-reminder-*-firefox.zip</code> from the latest release.</li>
           <li>Open <code>about:debugging#/runtime/this-firefox</code>.</li>
           <li>Click <strong>Load Temporary Add-on</strong> and select the ZIP.</li>
-          <li>Pin it to the toolbar from the extensions menu.</li>
+          <li>Open it from Firefox’s sidebar menu, then pin it to the toolbar for the compact popup.</li>
         </ol>
       </article>
+    </div>
+
+    <div class="container dev-panel">
+      <div>
+        <p class="eyebrow">Developer flow</p>
+        <h2 class="section-title">Run it from source</h2>
+        <p class="section-lead">
+          For local work, use the WXT dev server so browser builds, manifest variants and sidebar
+          entrypoints stay in sync.
+        </p>
+      </div>
+      <ol class="dev-steps">
+        <li><code>pnpm install</code></li>
+        <li><code>pnpm --filter @sticky-reminder/extension dev</code></li>
+        <li>Load <code>apps/extension/.output/chrome-mv3</code> from <code>chrome://extensions</code>.</li>
+        <li>For Firefox checks, run <code>pnpm --filter @sticky-reminder/extension build:firefox</code> and load the Firefox output.</li>
+      </ol>
     </div>
 
     <div class="container" style="margin-top: 1.25rem; display: grid; gap: 0.75rem;">
@@ -102,8 +125,8 @@ const hasOfficialStore = Boolean(CHROME_STORE_URL || FIREFOX_STORE_URL);
       <p class="note">
         <and-icon name="code" size="16"></and-icon>
         <span>
-          Prefer to build from source? Clone the repo, run <code>pnpm install</code>, then
-          <code>pnpm build</code> and load <code>apps/extension/.output/chrome-mv3</code> unpacked.
+          Prefer to build from source? Use the developer flow above. The same reminder UI now ships
+          as a popup and as a browser sidebar.
         </span>
       </p>
       <p class="note">
