@@ -201,6 +201,8 @@ setting once the site is real:
 | Variable | Scope | What it changes |
 |----------|-------|-----------------|
 | `SITE_URL` | Production only | Overrides `CF_PAGES_URL` with the real domain. Leave it off Preview, or every preview will claim to be production |
+| `PUBLIC_CHROME_STORE_URL` | Production | Shows the signed Chrome Web Store install button once the listing exists |
+| `PUBLIC_FIREFOX_STORE_URL` | Production | Shows the signed Firefox Add-ons install button once the listing exists |
 
 `https://sticky-reminder.pages.dev` is the site's published address, so it is the
 one that gets indexed: the GitHub Pages build points `<link rel="canonical">`
@@ -217,8 +219,12 @@ archive names, and the release workflow rejects a tag that disagrees with it.
 Then tag the exact commit and push that tag:
 
 ```bash
-git tag v0.1.1 && git push origin v0.1.1
+git tag v0.2.0 && git push origin v0.2.0
 ```
+
+The initial store-account setup, required GitHub secrets and dry-run procedure
+are documented in [`STORE_PUBLISHING.md`](STORE_PUBLISHING.md). After that
+one-time bootstrap, the same tag submits the release to every enabled store.
 
 ## License
 

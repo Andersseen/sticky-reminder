@@ -8,9 +8,13 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: 'Build the artifacts without publishing a release'
+        description: 'Authenticate with enabled stores without uploading'
         type: boolean
         default: true
+      submit_stores:
+        description: 'Run enabled store submissions after verification'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -124,7 +128,7 @@ jobs:
           mkdir -p artifacts
           cp apps/extension/.output/*.zip artifacts/
           cd artifacts
-          sha256sum *.zip > SHA256SUMS.txt
+          sha256sum ./*.zip > SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
         with:
@@ -154,3 +158,35 @@ jobs:
 
             `sticky-reminder-*-sources.zip` contains the corresponding source
             tree for Firefox review. Verify downloads with `SHA256SUMS.txt`.
+
+      - name: Submit to Chrome Web Store
+        if: ${{ (startsWith(github.ref, 'refs/tags/v') || inputs.submit_stores) && vars.SUBMIT_CHROME == 'true' }}
+        working-directory: apps/extension
+        env:
+          STORE_DRY_RUN_FLAG: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '--dry-run' || '' }}
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+          CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL: ${{ secrets.CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL }}
+          CHROME_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ secrets.CHROME_SERVICE_ACCOUNT_PRIVATE_KEY }}
+        run: |
+          submit_args=()
+          if [ -n "$STORE_DRY_RUN_FLAG" ]; then submit_args+=("$STORE_DRY_RUN_FLAG"); fi
+          pnpm exec wxt submit "${submit_args[@]}" \
+            --chrome-api-version v2 \
+            --chrome-zip .output/*-chrome.zip
+
+      - name: Submit to Firefox Add-ons
+        if: ${{ (startsWith(github.ref, 'refs/tags/v') || inputs.submit_stores) && vars.SUBMIT_FIREFOX == 'true' }}
+        working-directory: apps/extension
+        env:
+          STORE_DRY_RUN_FLAG: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '--dry-run' || '' }}
+          FIREFOX_EXTENSION_ID: ${{ secrets.FIREFOX_EXTENSION_ID }}
+          FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
+        run: |
+          submit_args=()
+          if [ -n "$STORE_DRY_RUN_FLAG" ]; then submit_args+=("$STORE_DRY_RUN_FLAG"); fi
+          pnpm exec wxt submit "${submit_args[@]}" \
+            --firefox-channel listed \
+            --firefox-zip .output/*-firefox.zip \
+            --firefox-sources-zip .output/*-sources.zip

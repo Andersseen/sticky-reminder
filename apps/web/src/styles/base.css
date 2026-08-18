@@ -328,6 +328,15 @@ a {
   font-size: 0.875rem;
 }
 
+.store-status {
+  display: inline-flex;
+  padding: 0.5rem 0.75rem;
+  border: var(--hairline);
+  border-radius: 9999px;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.8125rem;
+}
+
 /* ── Hero ───────────────────────────────────────────────────────────────── */
 
 .hero {

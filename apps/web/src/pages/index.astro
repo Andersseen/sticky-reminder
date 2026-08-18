@@ -1,7 +1,7 @@
 ---
 import PopupMock from '../components/PopupMock.astro';
 import Layout from '../layouts/Layout.astro';
-import { url, REPO_URL } from '../lib/site';
+import { url, CHROME_STORE_URL, REPO_URL } from '../lib/site';
 
 const features = [
   {
@@ -86,7 +86,9 @@ const faq = [
   },
   {
     q: 'Is it on the Chrome Web Store?',
-    a: 'Store publication is in progress. Until the signed listings are live, use the verified build from the releases page — the download page walks through it.',
+    a: CHROME_STORE_URL
+      ? 'Yes. Use the install page to open the signed Chrome Web Store listing. Store installations update automatically.'
+      : 'Store publication is in progress. Until the signed listing is live, use the verified build from the releases page — the download page walks through it.',
   },
   {
     q: 'What happens to a repeating reminder I never tick off?',

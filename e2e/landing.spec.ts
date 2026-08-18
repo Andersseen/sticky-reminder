@@ -50,6 +50,7 @@ test('the download page is reachable from the hero', async ({ page }) => {
 
   await expect(page).toHaveURL(/\/download/);
   await expect(page.getByRole('heading', { name: 'Get Sticky Reminder' })).toBeVisible();
+  await expect(page.locator('.store-status')).toContainText('Store review pending');
   await expect(page.locator('.install-card')).toHaveCount(2);
 });
 
