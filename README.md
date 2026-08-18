@@ -13,6 +13,7 @@
 <p>
   <b><a href="https://sticky-reminder.pages.dev/">Website</a></b> ·
   <b><a href="https://sticky-reminder.pages.dev/download">Install</a></b> ·
+  <b><a href="https://sticky-reminder.pages.dev/privacy">Privacy</a></b> ·
   <b><a href="https://github.com/Andersseen/sticky-reminder/releases/latest">Releases</a></b> ·
   <b><a href="CONTRIBUTING.md">Contributing</a></b>
 </p>
@@ -108,6 +109,7 @@ pnpm dev            # extension (WXT) + site (Astro) dev servers
 | `pnpm lint` | Typecheck and lint with Biome |
 | `pnpm test` | Unit tests (Vitest) |
 | `pnpm test:e2e` | Site E2E (Playwright) |
+| `pnpm store:assets` | Rebuild the exact-size store screenshots and promo tile from the extension |
 | `pnpm clean` | Remove build artifacts |
 
 Extension-only:

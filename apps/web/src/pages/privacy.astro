@@ -1,0 +1,102 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { ISSUES_URL, REPO_URL } from '../lib/site';
+---
+
+<Layout
+  title="Privacy policy — Sticky Reminder"
+  description="How Sticky Reminder handles reminder data locally, which browser permissions it uses, and how to delete your data."
+>
+  <article class="container legal-page">
+    <header class="legal-head">
+      <p class="eyebrow">Privacy policy</p>
+      <h1 class="page-title">Your reminders stay on your device</h1>
+      <p class="section-lead">
+        Sticky Reminder does not collect, sell, share or transmit personal data. It has no account,
+        analytics, advertising, remote API or backend service.
+      </p>
+      <p class="legal-date">Effective and last updated: August 18, 2026</p>
+    </header>
+
+    <section>
+      <h2>Data the extension handles</h2>
+      <p>When you create a reminder, the extension handles the information you enter:</p>
+      <ul>
+        <li>reminder title</li>
+        <li>optional reminder note</li>
+        <li>scheduled date and time</li>
+        <li>repeat setting and completion state</li>
+      </ul>
+      <p>
+        This information is stored only in the browser's local extension storage on your device. It
+        is used only to display, schedule and notify you about your reminders. Sticky Reminder does
+        not send it to the developer or third parties, and does not use it for advertising,
+        profiling or credit decisions.
+      </p>
+      <p>
+        The extension does not read your browsing history, page content, location, contacts or
+        activity on other websites. It does not request host permissions.
+      </p>
+    </section>
+
+    <section>
+      <h2>Permissions</h2>
+      <dl class="legal-permissions">
+        <div>
+          <dt><code>alarms</code></dt>
+          <dd>Schedules a reminder for its due time.</dd>
+        </div>
+        <div>
+          <dt><code>notifications</code></dt>
+          <dd>Displays the reminder through the browser's native notification system.</dd>
+        </div>
+        <div>
+          <dt><code>storage</code></dt>
+          <dd>Saves reminders in local extension storage on your device.</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section>
+      <h2>Retention and deletion</h2>
+      <p>
+        Reminder data stays in local extension storage until you delete the reminder, clear the
+        extension's data or uninstall the extension. The developer cannot access or recover this
+        data because it is never received by a developer-run service.
+      </p>
+      <p>
+        Browser backup, enterprise-management or device-sync features outside Sticky Reminder's
+        control may handle local browser data according to the browser or device provider's own
+        policies.
+      </p>
+    </section>
+
+    <section>
+      <h2>Children's privacy</h2>
+      <p>
+        Sticky Reminder does not knowingly collect personal information from anyone, including
+        children, because it does not transmit or receive user data.
+      </p>
+    </section>
+
+    <section>
+      <h2>Changes to this policy</h2>
+      <p>
+        Material changes will be published here and in the source repository with a new “Last
+        updated” date. A change requiring new permissions or data handling will also be disclosed in
+        the relevant store listing and release notes.
+      </p>
+    </section>
+
+    <section>
+      <h2>Contact</h2>
+      <p>
+        For privacy questions, <a href={`${ISSUES_URL}/new?labels=privacy&title=Privacy%20question`}>
+          open a privacy issue</a
+        > without including sensitive reminder content. Security vulnerabilities should use the
+        repository's <a href={`${REPO_URL}/security/advisories/new`}>private advisory form</a>.
+      </p>
+    </section>
+  </article>
+</Layout>
+

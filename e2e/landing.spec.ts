@@ -52,3 +52,17 @@ test('the download page is reachable from the hero', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Get Sticky Reminder' })).toBeVisible();
   await expect(page.locator('.install-card')).toHaveCount(2);
 });
+
+test('the public privacy policy is linked and describes local storage', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('contentinfo').getByRole('link', { name: 'Privacy' }).click();
+
+  await expect(page).toHaveURL(/\/privacy/);
+  await expect(
+    page.getByRole('heading', { name: 'Your reminders stay on your device' }),
+  ).toBeVisible();
+  await expect(
+    page.getByText('does not collect, sell, share or transmit personal data'),
+  ).toBeVisible();
+  await expect(page.locator('.legal-permissions div')).toHaveCount(3);
+});

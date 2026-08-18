@@ -18,6 +18,7 @@
     "audit:prod": "pnpm audit --prod",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "store:assets": "pnpm --filter=@sticky-reminder/extension store:assets",
     "clean": "turbo run clean && rm -rf node_modules",
     "prepare": "husky"
   },

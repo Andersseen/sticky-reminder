@@ -267,6 +267,67 @@ a {
   color: hsl(var(--muted-foreground));
 }
 
+/* ── Legal pages ────────────────────────────────────────────────────────── */
+
+.legal-page {
+  max-width: 52rem;
+  padding-block: clamp(3rem, 8vw, 5rem);
+}
+
+.legal-head {
+  display: grid;
+  gap: 0.75rem;
+  padding-bottom: 2rem;
+  border-bottom: var(--hairline);
+}
+
+.legal-page section {
+  padding-top: 2rem;
+}
+
+.legal-page h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.25rem;
+  letter-spacing: -0.015em;
+}
+
+.legal-page p,
+.legal-page li,
+.legal-page dd {
+  color: hsl(var(--muted-foreground));
+}
+
+.legal-date {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.legal-permissions {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.legal-permissions div {
+  display: grid;
+  gap: 0.25rem;
+  padding: 1rem;
+  border: var(--hairline);
+  border-radius: var(--radius);
+  background: hsl(var(--card));
+}
+
+.legal-permissions dd {
+  margin: 0;
+}
+
+.privacy-link {
+  margin: 1.25rem 0 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+}
+
 /* ── Hero ───────────────────────────────────────────────────────────────── */
 
 .hero {
