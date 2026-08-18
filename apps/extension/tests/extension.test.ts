@@ -1,6 +1,6 @@
 import { createReminder } from '@sticky-reminder/core';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fakeBrowser } from 'wxt/testing';
+import { fakeBrowser } from 'wxt/testing/fake-browser';
 
 vi.mock('wxt/browser', () => ({
   browser: fakeBrowser,

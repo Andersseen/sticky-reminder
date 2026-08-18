@@ -59,8 +59,8 @@ Grab the build for your browser from the [latest release](https://github.com/And
 - **Firefox** — open `about:debugging#/runtime/this-firefox` and **Load Temporary Add-on** with `sticky-reminder-*-firefox.zip`.
 
 The [download page](https://sticky-reminder.pages.dev/download) walks
-through both, and every release also carries the packed `@sticky-reminder/core`
-and `@sticky-reminder/ui` tarballs.
+through both. Releases also include the source archive required for Firefox
+review and SHA-256 checksums for every download.
 
 ## Repository layout
 
@@ -165,7 +165,7 @@ touching the UI:
 |----------|---------|--------------|
 | [`ci.yml`](.github/workflows/ci.yml) | push and PR to `main` | Lint, unit tests, both browser builds, then both E2E suites |
 | [`deploy-github-pages.yml`](.github/workflows/deploy-github-pages.yml) | push to `main` touching the site | Builds the site with the `/sticky-reminder/` base path and publishes it to GitHub Pages |
-| [`release.yml`](.github/workflows/release.yml) | a `v*` tag | Zips the Chrome and Firefox builds, packs both libraries, and publishes a GitHub Release with them attached |
+| [`release.yml`](.github/workflows/release.yml) | a `v*` tag | Audits, lints, tests and zips both browser builds, then publishes them with Firefox review sources and checksums |
 
 Cloudflare Pages is not in that table on purpose: it watches the repository
 itself and builds without going through Actions.
@@ -208,12 +208,12 @@ headers on top, which only Cloudflare acts on.
 
 ### Cutting a release
 
-Bump the version in the workspace `package.json` files and in the manifest
-([`wxt.config.ts`](apps/extension/wxt.config.ts)) — the release artifacts are
-named from it — then tag:
+Bump only `apps/extension/package.json`: WXT uses it for both manifests and the
+archive names, and the release workflow rejects a tag that disagrees with it.
+Then tag the exact commit and push that tag:
 
 ```bash
-git tag v0.2.0 && git push origin v0.2.0
+git tag v0.1.1 && git push origin v0.1.1
 ```
 
 ## License

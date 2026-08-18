@@ -10,7 +10,7 @@ pnpm build          # the extension tests import core from its build output
 pnpm dev            # extension (WXT) and site (Astro) dev servers
 ```
 
-Node 20+ and pnpm 10 are required — the exact pnpm version is pinned in
+Node 22.12+ and pnpm 10 are required — the exact versions are pinned in
 `package.json` under `packageManager`.
 
 ## The layout
