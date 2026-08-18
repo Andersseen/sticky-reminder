@@ -6,6 +6,9 @@ export default defineConfig({
   // release then publishes.
   zip: {
     name: 'sticky-reminder',
+    // release.yml creates the review archive from the exact Git commit. WXT's
+    // default starts here and would omit the two workspace packages it bundles.
+    zipSources: false,
   },
   manifest: {
     name: 'Sticky Reminder',
@@ -31,6 +34,11 @@ export default defineConfig({
       gecko: {
         id: 'sticky-reminder@andersseen',
         strict_min_version: '109.0',
+        // Firefox requires every new AMO submission to declare transmitted
+        // data. Reminder content never leaves the local browser.
+        data_collection_permissions: {
+          required: ['none'],
+        },
       },
     },
   },

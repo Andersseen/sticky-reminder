@@ -13,7 +13,9 @@
 <p>
   <b><a href="https://sticky-reminder.pages.dev/">Website</a></b> ·
   <b><a href="https://sticky-reminder.pages.dev/download">Install</a></b> ·
+  <b><a href="https://sticky-reminder.pages.dev/privacy">Privacy</a></b> ·
   <b><a href="https://github.com/Andersseen/sticky-reminder/releases/latest">Releases</a></b> ·
+  <b><a href="CHANGELOG.md">Changelog</a></b> ·
   <b><a href="CONTRIBUTING.md">Contributing</a></b>
 </p>
 
@@ -49,6 +51,7 @@ two packages both are built from.
 | **Native notifications** | Reminders fire through the browser's own notification system, so they arrive whether or not the tab that created them still exists. |
 | **Daily and weekly repeats** | A repeating reminder rolls forward the moment it fires, and skips the periods it slept through instead of firing a backlog. |
 | **Overdue at a glance** | Late reminders turn red and say how late. Search, filter and counters live on the options page. |
+| **Portable backup** | Export a readable JSON copy and merge it back in from the options page. The file stays under your control. |
 | **Local only** | `alarms`, `notifications` and `storage`. No host permissions, so the extension cannot read a single page you visit. |
 
 ## Install
@@ -59,8 +62,8 @@ Grab the build for your browser from the [latest release](https://github.com/And
 - **Firefox** — open `about:debugging#/runtime/this-firefox` and **Load Temporary Add-on** with `sticky-reminder-*-firefox.zip`.
 
 The [download page](https://sticky-reminder.pages.dev/download) walks
-through both, and every release also carries the packed `@sticky-reminder/core`
-and `@sticky-reminder/ui` tarballs.
+through both. Releases also include the source archive required for Firefox
+review and SHA-256 checksums for every download.
 
 ## Repository layout
 
@@ -108,6 +111,7 @@ pnpm dev            # extension (WXT) + site (Astro) dev servers
 | `pnpm lint` | Typecheck and lint with Biome |
 | `pnpm test` | Unit tests (Vitest) |
 | `pnpm test:e2e` | Site E2E (Playwright) |
+| `pnpm store:assets` | Rebuild the exact-size store screenshots and promo tile from the extension |
 | `pnpm clean` | Remove build artifacts |
 
 Extension-only:
@@ -165,7 +169,7 @@ touching the UI:
 |----------|---------|--------------|
 | [`ci.yml`](.github/workflows/ci.yml) | push and PR to `main` | Lint, unit tests, both browser builds, then both E2E suites |
 | [`deploy-github-pages.yml`](.github/workflows/deploy-github-pages.yml) | push to `main` touching the site | Builds the site with the `/sticky-reminder/` base path and publishes it to GitHub Pages |
-| [`release.yml`](.github/workflows/release.yml) | a `v*` tag | Zips the Chrome and Firefox builds, packs both libraries, and publishes a GitHub Release with them attached |
+| [`release.yml`](.github/workflows/release.yml) | a `v*` tag | Audits, lints, tests and zips both browser builds, then publishes them with Firefox review sources and checksums |
 
 Cloudflare Pages is not in that table on purpose: it watches the repository
 itself and builds without going through Actions.
@@ -197,6 +201,8 @@ setting once the site is real:
 | Variable | Scope | What it changes |
 |----------|-------|-----------------|
 | `SITE_URL` | Production only | Overrides `CF_PAGES_URL` with the real domain. Leave it off Preview, or every preview will claim to be production |
+| `PUBLIC_CHROME_STORE_URL` | Production | Shows the signed Chrome Web Store install button once the listing exists |
+| `PUBLIC_FIREFOX_STORE_URL` | Production | Shows the signed Firefox Add-ons install button once the listing exists |
 
 `https://sticky-reminder.pages.dev` is the site's published address, so it is the
 one that gets indexed: the GitHub Pages build points `<link rel="canonical">`
@@ -208,13 +214,17 @@ headers on top, which only Cloudflare acts on.
 
 ### Cutting a release
 
-Bump the version in the workspace `package.json` files and in the manifest
-([`wxt.config.ts`](apps/extension/wxt.config.ts)) — the release artifacts are
-named from it — then tag:
+Bump only `apps/extension/package.json`: WXT uses it for both manifests and the
+archive names, and the release workflow rejects a tag that disagrees with it.
+Then tag the exact commit and push that tag:
 
 ```bash
 git tag v0.2.0 && git push origin v0.2.0
 ```
+
+The initial store-account setup, required GitHub secrets and dry-run procedure
+are documented in [`STORE_PUBLISHING.md`](STORE_PUBLISHING.md). After that
+one-time bootstrap, the same tag submits the release to every enabled store.
 
 ## License
 

@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { type BrowserContext, type Page, expect, test } from '@playwright/test';
 import { loadExtension } from './extension';
 
@@ -49,7 +50,13 @@ async function openOptions(query = ''): Promise<Page> {
   const page = await context.newPage();
   await page.goto(`chrome-extension://${extensionId}/options.html`);
   await page.evaluate(async (reminders) => {
-    await chrome.storage.local.set({ reminders });
+    await chrome.storage.local.clear();
+    await chrome.storage.local.set({
+      'stickyReminder.schemaVersion': 1,
+      ...Object.fromEntries(
+        reminders.map((reminder) => [`stickyReminder.reminder.${reminder.id}`, reminder]),
+      ),
+    });
   }, REMINDERS);
 
   // Reload with the query string in place: the highlight is read once, at load.
@@ -108,6 +115,69 @@ test('deleting from the options page clears the alarm too', async () => {
 
   await expect(page.locator('sr-reminder-item')).toHaveCount(2);
   expect(await page.evaluate(() => chrome.alarms.getAll())).toHaveLength(0);
+
+  await page.close();
+});
+
+test('an existing v0.1.0 reminder is migrated on first load', async () => {
+  const page = await context.newPage();
+  await page.goto(`chrome-extension://${extensionId}/options.html`);
+  await page.evaluate(async (reminder) => {
+    await chrome.storage.local.clear();
+    await chrome.storage.local.set({ reminders: [reminder] });
+  }, REMINDERS[1]);
+
+  await page.reload();
+
+  await expect(page.locator('sr-reminder-item')).toHaveCount(1);
+  await expect(page.locator('sr-reminder-item')).toContainText('Daily standup');
+  const keys = await page.evaluate(async () => Object.keys(await chrome.storage.local.get(null)));
+  expect(keys).not.toContain('reminders');
+  expect(keys.some((key) => key.startsWith('stickyReminder.reminder.'))).toBe(true);
+
+  await page.close();
+});
+
+test('exports and imports a validated local backup', async () => {
+  const page = await openOptions();
+  const downloadPromise = page.waitForEvent('download');
+  await page.locator('#export-backup button').click();
+  const download = await downloadPromise;
+
+  expect(download.suggestedFilename()).toMatch(/^sticky-reminder-backup-\d{4}-\d{2}-\d{2}\.json$/);
+  const path = await download.path();
+  expect(path).not.toBeNull();
+  const exported = JSON.parse(await readFile(path as string, 'utf8'));
+  expect(exported.format).toBe('sticky-reminder-backup');
+  expect(exported.version).toBe(1);
+  expect(exported.reminders).toHaveLength(3);
+
+  const imported = {
+    id: 'imported',
+    title: 'Imported from backup',
+    body: 'Portable and local',
+    scheduledAt: new Date(Date.now() + HOUR).toISOString(),
+    repeat: 'none',
+    completed: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  await page.locator('#backup-file').setInputFiles({
+    name: 'sticky-reminder-backup.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(
+      JSON.stringify({
+        format: 'sticky-reminder-backup',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        reminders: [imported],
+      }),
+    ),
+  });
+
+  await expect(page.locator('#backup-status')).toHaveText('Imported 1; 4 reminders now stored.');
+  await expect(page.locator('sr-reminder-item')).toHaveCount(4);
+  await expect(page.locator('[data-id="imported"]')).toContainText('Imported from backup');
 
   await page.close();
 });

@@ -8,6 +8,9 @@ export const SITE_NAME = 'Sticky Reminder';
 export const SITE_DESCRIPTION =
   'A browser extension for reminders that actually reach you: one click to create, a native notification when the time comes, daily or weekly repeats, and every reminder stored on your own device.';
 
+export const CHROME_STORE_URL = import.meta.env.PUBLIC_CHROME_STORE_URL?.trim() || null;
+export const FIREFOX_STORE_URL = import.meta.env.PUBLIC_FIREFOX_STORE_URL?.trim() || null;
+
 /**
  * Prefixes a path with the deployment base. GitHub Pages serves this site from
  * a sub-path, while Cloudflare Pages and dev serve it from the root, so no

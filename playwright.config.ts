@@ -14,6 +14,9 @@ export default defineConfig({
   // Without this the suite hits a dead port: nothing else starts the site.
   webServer: {
     command: 'pnpm --filter @sticky-reminder/web dev',
+    // Astro 7 auto-detects coding agents and otherwise detaches its dev server,
+    // which makes Playwright think the foreground process exited prematurely.
+    env: { ASTRO_DEV_BACKGROUND: '0' },
     url: 'http://localhost:4321',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

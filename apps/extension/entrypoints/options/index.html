@@ -44,6 +44,19 @@
         </and-card>
       </section>
 
+      <and-card padded class="backup-panel" and-motion="fade-in">
+        <div>
+          <h2>Local backup</h2>
+          <p>Export a JSON copy or merge one back in. Files never leave your device.</p>
+        </div>
+        <div class="backup-actions">
+          <and-button id="export-backup" variant="outline" size="sm">Export backup</and-button>
+          <and-button id="import-backup" variant="outline" size="sm">Import backup</and-button>
+          <input id="backup-file" type="file" accept="application/json,.json" hidden />
+        </div>
+        <p id="backup-status" class="backup-status" role="status" aria-live="polite"></p>
+      </and-card>
+
       <section and-layout="vertical gap:sm">
         <div class="toolbar">
           <div class="sr-segmented" role="tablist" aria-label="Filter reminders" id="filters">

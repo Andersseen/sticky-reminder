@@ -1,7 +1,7 @@
 ---
 import PopupMock from '../components/PopupMock.astro';
 import Layout from '../layouts/Layout.astro';
-import { url, REPO_URL } from '../lib/site';
+import { url, CHROME_STORE_URL, REPO_URL } from '../lib/site';
 
 const features = [
   {
@@ -23,6 +23,11 @@ const features = [
     icon: 'search',
     title: 'Overdue at a glance',
     body: 'Late reminders turn red and say how late. Search and filter the full list from the options page.',
+  },
+  {
+    icon: 'download',
+    title: 'Portable local backups',
+    body: 'Export every reminder to a readable JSON file and merge it back in whenever you need it. No cloud or extra permission involved.',
   },
   {
     icon: 'lock',
@@ -73,7 +78,7 @@ const faq = [
   },
   {
     q: 'Does it work when the browser is closed?',
-    a: 'No — reminders fire while your browser is running. If one comes due while the browser is shut, it shows as overdue the next time you open it, and repeating reminders pick up at their next occurrence rather than firing every missed one.',
+    a: 'The browser must be running to show a notification. A missed one-time reminder fires when the browser starts again; repeating reminders resume at their next occurrence instead of firing every missed interval.',
   },
   {
     q: 'Which browsers are supported?',
@@ -81,7 +86,9 @@ const faq = [
   },
   {
     q: 'Is it on the Chrome Web Store?',
-    a: 'Not yet. For now you install the build from the releases page, which takes about a minute — the download page walks through it.',
+    a: CHROME_STORE_URL
+      ? 'Yes. Use the install page to open the signed Chrome Web Store listing. Store installations update automatically.'
+      : 'Store publication is in progress. Until the signed listing is live, use the verified build from the releases page — the download page walks through it.',
   },
   {
     q: 'What happens to a repeating reminder I never tick off?',
@@ -96,7 +103,7 @@ const faq = [
       <div class="hero-copy">
         <span class="pill" and-motion="fade-in">
           <and-icon name="star" size="12"></and-icon>
-          v1.0 · Free and open source
+          v0.2.0 · Free and open source
         </span>
 
         <h1 class="hero-title">
@@ -196,6 +203,10 @@ const faq = [
           ))
         }
       </div>
+      <p class="privacy-link">
+        Read the complete <a href={url('/privacy')}>privacy policy</a>, including retention and
+        deletion details.
+      </p>
     </div>
   </section>
 

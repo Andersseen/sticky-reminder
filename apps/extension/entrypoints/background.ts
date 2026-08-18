@@ -4,7 +4,7 @@ import {
   formatNotificationTitle,
 } from '@sticky-reminder/core';
 import { browser } from 'wxt/browser';
-import { defineBackground } from 'wxt/sandbox';
+import { defineBackground } from 'wxt/utils/define-background';
 import {
   reminderIdFromAlarmName,
   scheduleReminderAlarm,

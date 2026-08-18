@@ -1,6 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { ISSUES_URL, LATEST_RELEASE_URL, REPO_URL } from '../lib/site';
+import {
+  CHROME_STORE_URL,
+  FIREFOX_STORE_URL,
+  ISSUES_URL,
+  LATEST_RELEASE_URL,
+  REPO_URL,
+} from '../lib/site';
+
+const hasOfficialStore = Boolean(CHROME_STORE_URL || FIREFOX_STORE_URL);
 ---
 
 <Layout
@@ -11,22 +19,53 @@ import { ISSUES_URL, LATEST_RELEASE_URL, REPO_URL } from '../lib/site';
     <p class="eyebrow">Install</p>
     <h1 class="page-title">Get Sticky Reminder</h1>
     <p class="section-lead">
-      Every release ships a build for Chromium browsers and one for Firefox. Pick yours, then follow
-      the four lines below — it takes about a minute.
+      {
+        hasOfficialStore
+          ? 'Install the signed extension from your browser’s official store. Updates arrive automatically.'
+          : 'The signed store listings are being prepared. Until review is complete, every release includes verified builds for Chromium and Firefox.'
+      }
     </p>
 
-    <div class="hero-actions" style="margin-top: 1.5rem;">
-      <and-button href={LATEST_RELEASE_URL} size="lg" rel="noreferrer">
-        <and-icon name="download" size="16"></and-icon>
-        Download the latest release
-      </and-button>
-      <and-button href={REPO_URL} variant="outline" size="lg" rel="noreferrer">
-        Build it yourself
-      </and-button>
-    </div>
+    {
+      hasOfficialStore ? (
+        <div class="hero-actions" style="margin-top: 1.5rem;">
+          {CHROME_STORE_URL && (
+            <and-button href={CHROME_STORE_URL} size="lg" rel="noreferrer">
+              Install for Chrome
+            </and-button>
+          )}
+          {FIREFOX_STORE_URL && (
+            <and-button href={FIREFOX_STORE_URL} size="lg" rel="noreferrer">
+              Install for Firefox
+            </and-button>
+          )}
+        </div>
+      ) : (
+        <p class="store-status" style="margin-top: 1.5rem;">
+          Store review pending · manual installation remains available below
+        </p>
+      )
+    }
   </section>
 
   <section class="section" style="padding-top: 2rem;">
+    <div class="container section-head">
+      <p class="eyebrow">Manual installation</p>
+      <h2 class="section-title">Verified release builds</h2>
+      <p class="section-lead">
+        Useful before the store review finishes, for testing, or if you prefer to inspect the ZIP
+        yourself.
+      </p>
+      <div class="hero-actions">
+        <and-button href={LATEST_RELEASE_URL} size="lg" rel="noreferrer">
+          <and-icon name="download" size="16"></and-icon>
+          Download the latest release
+        </and-button>
+        <and-button href={REPO_URL} variant="outline" size="lg" rel="noreferrer">
+          Build it yourself
+        </and-button>
+      </div>
+    </div>
     <div class="container install-grid">
       <article class="install-card" and-motion="fade-in-up">
         <h2>Chrome, Edge, Brave, Arc</h2>
