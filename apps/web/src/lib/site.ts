@@ -10,6 +10,7 @@ export const SITE_DESCRIPTION =
 
 export const CHROME_STORE_URL = import.meta.env.PUBLIC_CHROME_STORE_URL?.trim() || null;
 export const FIREFOX_STORE_URL = import.meta.env.PUBLIC_FIREFOX_STORE_URL?.trim() || null;
+export const EDGE_STORE_URL = import.meta.env.PUBLIC_EDGE_STORE_URL?.trim() || null;
 
 /**
  * Prefixes a path with the deployment base. GitHub Pages serves this site from

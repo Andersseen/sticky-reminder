@@ -6,8 +6,8 @@ import { url, CHROME_STORE_URL, REPO_URL } from '../lib/site';
 const features = [
   {
     icon: 'zap',
-    title: 'One click, no context switch',
-    body: 'Open the popup, type it, pick a time. No app to switch to, no tab to keep open, no account to make.',
+    title: 'Sidebar-first, popup-ready',
+    body: 'Keep reminders beside the page in supported browsers, or use the toolbar popup for the same one-click flow.',
   },
   {
     icon: 'bell',
@@ -43,8 +43,8 @@ const features = [
 
 const steps = [
   {
-    title: 'Install and pin it',
-    body: 'Grab the build from the releases page and load it in your browser. Pin the icon so the popup is one click away.',
+    title: 'Install and open the sidebar',
+    body: 'Use the official store build when available, or load the release manually. The sidebar sits next to the page instead of covering it.',
   },
   {
     title: 'Write the reminder',
@@ -82,7 +82,7 @@ const faq = [
   },
   {
     q: 'Which browsers are supported?',
-    a: 'Chrome, Edge and any other Chromium browser through the MV3 build, plus Firefox through its own build. Both are attached to every release.',
+    a: 'Chrome, Edge and any other Chromium browser through the MV3 build, plus Firefox through its own build. Supported browsers get a native sidebar; the toolbar popup remains available as a compact fallback.',
   },
   {
     q: 'Is it on the Chrome Web Store?',
@@ -111,8 +111,8 @@ const faq = [
         </h1>
 
         <p class="hero-lead">
-          Sticky Reminder lives in your browser toolbar. Write a reminder in a click, and get a
-          native notification when it is due — once, every day, or every week.
+          Sticky Reminder lives beside your browser viewport. Keep it open as a calm sidebar,
+          write a reminder in a click, and get a native notification when it is due.
         </p>
 
         <div class="hero-actions">
@@ -233,9 +233,10 @@ const faq = [
   <section class="section">
     <div class="container">
       <div class="cta" and-motion="fade-in">
-        <h2 class="section-title">Put it in your toolbar</h2>
+        <h2 class="section-title">Keep it beside your work</h2>
         <p class="section-lead" style="text-align: center;">
-          A minute to install, and the next thing you would have forgotten will find you instead.
+          Install it once, open the sidebar, and let the next thing you would have forgotten find
+          you instead.
         </p>
         <and-button href={url('/download')} size="lg">Install the extension</and-button>
       </div>

@@ -51,6 +51,9 @@ async function openOptions(query = ''): Promise<Page> {
   await page.goto(`chrome-extension://${extensionId}/options.html`);
   await page.evaluate(async (reminders) => {
     await chrome.storage.local.clear();
+    await chrome.alarms.clearAll();
+    const notifications = await chrome.notifications.getAll();
+    await Promise.all(Object.keys(notifications).map((id) => chrome.notifications.clear(id)));
     await chrome.storage.local.set({
       'stickyReminder.schemaVersion': 1,
       ...Object.fromEntries(
@@ -178,6 +181,23 @@ test('exports and imports a validated local backup', async () => {
   await expect(page.locator('#backup-status')).toHaveText('Imported 1; 4 reminders now stored.');
   await expect(page.locator('sr-reminder-item')).toHaveCount(4);
   await expect(page.locator('[data-id="imported"]')).toContainText('Imported from backup');
+
+  await page.close();
+});
+
+test('the notification diagnostic sends a visible browser notification', async () => {
+  const page = await openOptions();
+
+  await page.locator('#test-notification button').click();
+
+  await expect(page.locator('#notification-status')).toContainText('Test notification sent.');
+  await expect
+    .poll(() => page.evaluate(async () => Object.keys(await chrome.notifications.getAll())), {
+      timeout: 5_000,
+      intervals: [100],
+      message: 'the diagnostic notification was never created',
+    })
+    .toEqual(['sticky-reminder-test-notification']);
 
   await page.close();
 });

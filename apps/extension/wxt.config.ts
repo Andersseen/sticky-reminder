@@ -1,5 +1,21 @@
 import { defineConfig } from 'wxt';
 
+const baseManifest = {
+  name: 'Sticky Reminder',
+  short_name: 'Sticky',
+  description:
+    'Create reminders in one click and let your browser notify you — daily, weekly or once. Everything stays on your device.',
+  // `version` is deliberately absent: WXT falls back to this package's
+  // `package.json`, which keeps one number for the manifest, the zip
+  // filenames and the release tag. Bump it there and nowhere else — a second
+  // copy here silently wins and ships a build whose version contradicts the
+  // tag it was released under.
+  homepage_url: 'https://sticky-reminder.pages.dev/',
+  action: {
+    default_title: 'Sticky Reminder — new reminder',
+  },
+};
+
 export default defineConfig({
   // Without this the archive is named after the package (@sticky-reminder/
   // extension collapses to "sticky-reminderextension"), which is what the
@@ -11,20 +27,8 @@ export default defineConfig({
     zipSources: false,
   },
   manifest: {
-    name: 'Sticky Reminder',
-    short_name: 'Sticky',
-    description:
-      'Create reminders in one click and let your browser notify you — daily, weekly or once. Everything stays on your device.',
-    // `version` is deliberately absent: WXT falls back to this package's
-    // `package.json`, which keeps one number for the manifest, the zip
-    // filenames and the release tag. Bump it there and nowhere else — a second
-    // copy here silently wins and ships a build whose version contradicts the
-    // tag it was released under.
-    homepage_url: 'https://sticky-reminder.pages.dev/',
+    ...baseManifest,
     permissions: ['alarms', 'notifications', 'storage'],
-    action: {
-      default_title: 'Sticky Reminder — new reminder',
-    },
     // Firefox refuses to install an unsigned build without an add-on id; the
     // key is ignored by the Chromium build. The id is an identity, never a URL
     // that gets fetched, and Firefox treats a change to it as a different

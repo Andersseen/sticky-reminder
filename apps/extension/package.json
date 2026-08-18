@@ -6,6 +6,9 @@
   "type": "module",
   "scripts": {
     "dev": "wxt",
+    "dev:browser": "pnpm build && node scripts/open-dev-browser.mjs",
+    "dev:browser:options": "pnpm build && node scripts/open-dev-browser.mjs options",
+    "dev:browser:smoke": "pnpm build && node scripts/open-dev-browser.mjs --smoke",
     "build": "wxt build",
     "build:firefox": "wxt build -b firefox",
     "zip": "wxt zip",

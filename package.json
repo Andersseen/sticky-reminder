@@ -11,10 +11,13 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:extension": "pnpm --filter=@sticky-reminder/extension dev:browser",
+    "dev:extension:options": "pnpm --filter=@sticky-reminder/extension dev:browser:options",
     "lint": "turbo run lint",
     "format": "biome format --write .",
     "check": "biome check --write .",
     "test": "turbo run build --filter='./packages/*' && vitest run",
+    "test:coverage": "turbo run build --filter='./packages/*' && vitest run --coverage",
     "audit:prod": "pnpm audit --prod",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
@@ -25,6 +28,7 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@playwright/test": "^1.49.0",
+    "@vitest/coverage-v8": "4.1.10",
     "husky": "^9.1.0",
     "lint-staged": "^15.4.0",
     "turbo": "^2.3.0",

@@ -30,6 +30,22 @@ async function openPopup(): Promise<Page> {
   await page.evaluate(async () => {
     await chrome.storage.local.clear();
     await chrome.alarms.clearAll();
+    const notifications = await chrome.notifications.getAll();
+    await Promise.all(Object.keys(notifications).map((id) => chrome.notifications.clear(id)));
+  });
+  await page.reload();
+  return page;
+}
+
+async function openSidePanel(): Promise<Page> {
+  const page = await context.newPage();
+  await page.setViewportSize({ width: 420, height: 760 });
+  await page.goto(`chrome-extension://${extensionId}/sidepanel.html`);
+  await page.evaluate(async () => {
+    await chrome.storage.local.clear();
+    await chrome.alarms.clearAll();
+    const notifications = await chrome.notifications.getAll();
+    await Promise.all(Object.keys(notifications).map((id) => chrome.notifications.clear(id)));
   });
   await page.reload();
   return page;
@@ -81,6 +97,19 @@ test('the popup loads with the design system applied', async () => {
   await page.close();
 });
 
+test('the sidepanel reuses the reminder flow without covering page content', async () => {
+  const page = await openSidePanel();
+
+  await expect(page.locator('.sidepanel-shell')).toBeVisible();
+  await fillReminder(page, 'Review store listing', 'none');
+  await submitForm(page);
+
+  await expect(page.locator('sr-reminder-item').first()).toContainText('Review store listing');
+  await expect(page.locator('#reminders')).toContainText('Review store listing');
+
+  await page.close();
+});
+
 test('the form refuses an empty submission', async () => {
   const page = await openPopup();
 
@@ -105,6 +134,53 @@ test('creating a reminder stores it and schedules an alarm', async () => {
   expect(alarms).toHaveLength(1);
   expect(alarms[0].name).toMatch(/^reminder-/);
   expect(alarms[0].scheduledTime).toBeGreaterThan(Date.now());
+
+  await page.close();
+});
+
+test('a due one-off reminder creates a browser notification naturally', async () => {
+  const page = await openPopup();
+  await fillReminder(page, 'Natural notification', 'none', 0);
+  await submitForm(page);
+
+  const reminderId = await page.evaluate(async () => {
+    const store = await chrome.storage.local.get(null);
+    const reminder = Object.values(store).find(
+      (value): value is { id: string; title: string } =>
+        Boolean(value) &&
+        typeof value === 'object' &&
+        'title' in value &&
+        value.title === 'Natural notification',
+    );
+    return reminder?.id;
+  });
+  expect(reminderId).toBeTruthy();
+
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(async (id) => {
+          const [store, notifications] = await Promise.all([
+            chrome.storage.local.get(null),
+            chrome.notifications.getAll(),
+          ]);
+          const reminder = Object.values(store).find(
+            (value): value is { id: string; completed: boolean } =>
+              Boolean(value) && typeof value === 'object' && 'id' in value && value.id === id,
+          );
+
+          return {
+            completed: reminder?.completed,
+            notified: Object.hasOwn(notifications, id),
+          };
+        }, reminderId as string),
+      {
+        timeout: 20_000,
+        intervals: [250],
+        message: 'the natural browser alarm never produced a notification',
+      },
+    )
+    .toEqual({ completed: true, notified: true });
 
   await page.close();
 });

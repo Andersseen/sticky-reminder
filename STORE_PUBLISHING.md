@@ -1,8 +1,9 @@
 # Official store publishing
 
 GitHub Releases remain the verifiable source and beta distribution. End users
-should install the signed build from the Chrome Web Store or Firefox Add-ons so
-the browser can verify it and deliver automatic updates.
+should install the signed build from the Chrome Web Store, Microsoft Edge
+Add-ons or Firefox Add-ons so the browser can verify it and deliver automatic
+updates.
 
 The first listing in each store is intentionally manual: the owner must accept
 the store agreements, complete identity/account requirements, review the
@@ -17,6 +18,8 @@ exist, `.github/workflows/release.yml` submits every enabled tagged release.
   <https://sticky-reminder.pages.dev/privacy>
 - Chrome and Firefox packages, Firefox review sources and checksums: generated
   by the Release workflow
+- Native sidebar UI: `side_panel` for Chromium builds and `sidebar_action` for
+  Firefox builds
 
 ## 1. Bootstrap Chrome Web Store
 
@@ -56,7 +59,23 @@ service-account JSON or private key.
 6. Add repository variable `PUBLIC_FIREFOX_STORE_URL` with the final listing
    URL.
 
-## 3. Verify credentials safely
+## 3. Bootstrap Microsoft Edge Add-ons
+
+The current release workflow does not submit to Edge automatically. Bootstrap
+Edge manually first, then decide whether it is worth adding Partner Center API
+automation after the first review.
+
+1. Create a developer account in
+   [Microsoft Partner Center](https://partner.microsoft.com/dashboard/microsoftedge/overview).
+2. Create the extension listing and upload the generated Chrome ZIP; Edge uses
+   the same Chromium MV3 build.
+3. Reuse the Chrome listing text, privacy answers and screenshots from
+   `.github/store-listing/` and `.github/store-assets/`.
+4. Add repository variable `PUBLIC_EDGE_STORE_URL` with the final listing URL.
+5. Add the same `PUBLIC_EDGE_STORE_URL` variable to the Cloudflare Pages
+   production environment.
+
+## 4. Verify credentials safely
 
 In GitHub Actions, run the **Release** workflow from `main` with:
 
@@ -67,7 +86,7 @@ The workflow performs the complete audit, build and test suite, then asks WXT
 to authenticate without uploading. Disable a store by setting its `SUBMIT_*`
 variable to `false` or deleting the variable.
 
-## 4. Publish a version
+## 5. Publish a version
 
 After the pull request is merged, tag the exact commit with the version from
 `apps/extension/package.json`:
@@ -82,11 +101,13 @@ GitHub Release, then submits enabled stores for review. Store review remains
 controlled by Google and Mozilla; a successful workflow means the packages were
 accepted for review, not that reviewers have approved them.
 
-## 5. Show official install buttons
+Edge review remains manual until an Edge submission step is added to the release
+workflow.
 
-GitHub Pages reads `PUBLIC_CHROME_STORE_URL` and `PUBLIC_FIREFOX_STORE_URL` from
-repository variables automatically. Add the same two variables to the
-Cloudflare Pages production environment. Until at least one URL exists, the
-download page accurately shows “Store review pending” and keeps manual install
-instructions available.
+## 6. Show official install buttons
 
+GitHub Pages reads `PUBLIC_CHROME_STORE_URL`, `PUBLIC_EDGE_STORE_URL` and
+`PUBLIC_FIREFOX_STORE_URL` from repository variables automatically. Add the same
+variables to the Cloudflare Pages production environment. Until at least one URL
+exists, the download page accurately shows “Store review pending” and keeps
+manual install instructions available.

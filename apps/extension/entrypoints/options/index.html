@@ -57,6 +57,18 @@
         <p id="backup-status" class="backup-status" role="status" aria-live="polite"></p>
       </and-card>
 
+      <and-card padded class="diagnostics-panel" and-motion="fade-in">
+        <div>
+          <h2>Notification check</h2>
+          <p>Send one harmless test notification before trusting reminders for real work.</p>
+        </div>
+        <and-button id="test-notification" variant="outline" size="sm">
+          <and-icon name="bell" size="14"></and-icon>
+          Send test
+        </and-button>
+        <p id="notification-status" class="diagnostics-status" role="status" aria-live="polite"></p>
+      </and-card>
+
       <section and-layout="vertical gap:sm">
         <div class="toolbar">
           <div class="sr-segmented" role="tablist" aria-label="Filter reminders" id="filters">

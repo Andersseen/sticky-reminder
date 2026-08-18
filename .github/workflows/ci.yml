@@ -33,8 +33,8 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-      - name: Test
-        run: pnpm test
+      - name: Unit tests with coverage
+        run: pnpm test:coverage
 
       # Builds every workspace, the extension's chrome-mv3 output included.
       - name: Build

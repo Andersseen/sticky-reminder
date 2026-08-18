@@ -8,6 +8,7 @@ vi.mock('wxt/browser', () => ({
 
 const { alarmNameFor, reminderIdFromAlarmName, scheduleReminderAlarm, syncReminderAlarms } =
   await import('../utils/alarms');
+const { TEST_NOTIFICATION_ID, sendTestNotification } = await import('../utils/notifications');
 const {
   addReminder,
   createReminderBackup,
@@ -226,5 +227,23 @@ describe('syncReminderAlarms', () => {
     await syncReminderAlarms();
 
     expect((await fakeBrowser.alarms.getAll()).map((alarm) => alarm.name)).toEqual(['unrelated']);
+  });
+});
+
+describe('notifications', () => {
+  it('sends a deterministic test notification', async () => {
+    await expect(sendTestNotification(new Date('2026-08-18T12:34:00.000Z'))).resolves.toBe(
+      TEST_NOTIFICATION_ID,
+    );
+
+    const notifications = await fakeBrowser.notifications.getAll();
+    expect(Object.keys(notifications)).toEqual([TEST_NOTIFICATION_ID]);
+  });
+
+  it('replaces a previous test notification instead of piling them up', async () => {
+    await sendTestNotification(new Date('2026-08-18T12:34:00.000Z'));
+    await sendTestNotification(new Date('2026-08-18T12:35:00.000Z'));
+
+    expect(Object.keys(await fakeBrowser.notifications.getAll())).toEqual([TEST_NOTIFICATION_ID]);
   });
 });
