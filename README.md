@@ -111,6 +111,7 @@ pnpm dev            # extension (WXT) + site (Astro) dev servers
 | Script | What it does |
 |--------|--------------|
 | `pnpm dev` | Start every dev server |
+| `pnpm dev:extension` | Build the Chromium extension and open a local browser with it loaded |
 | `pnpm build` | Build every workspace |
 | `pnpm lint` | Typecheck and lint with Biome |
 | `pnpm test` | Unit tests (Vitest) |
@@ -123,6 +124,8 @@ Extension-only:
 ```bash
 cd apps/extension
 pnpm dev             # WXT dev server with hot reload
+pnpm dev:browser     # build and open Chromium with the unpacked extension loaded
+pnpm dev:browser:options # same, opening the options page first
 pnpm build           # Chromium MV3 build, including popup and sidepanel
 pnpm build:firefox   # Firefox build, including sidebar_action
 pnpm zip             # sticky-reminder-<version>-chrome.zip in .output/

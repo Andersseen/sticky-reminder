@@ -11,6 +11,8 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:extension": "pnpm --filter=@sticky-reminder/extension dev:browser",
+    "dev:extension:options": "pnpm --filter=@sticky-reminder/extension dev:browser:options",
     "lint": "turbo run lint",
     "format": "biome format --write .",
     "check": "biome check --write .",
