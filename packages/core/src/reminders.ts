@@ -33,13 +33,19 @@ export function createReminder(input: CreateReminderInput): Reminder {
 
 export function updateReminder(reminder: Reminder, input: UpdateReminderInput): Reminder {
   return {
-    ...reminder,
+    ...clearFiredState(reminder),
     title: input.title !== undefined ? input.title.trim() : reminder.title,
     body: input.body !== undefined ? input.body.trim() : reminder.body,
     scheduledAt: input.scheduledAt ?? reminder.scheduledAt,
     repeat: input.repeat ?? reminder.repeat,
     updatedAt: new Date().toISOString(),
   };
+}
+
+/** Drops the fired/unacknowledged markers without touching anything else. */
+function clearFiredState(reminder: Reminder): Reminder {
+  const { firedAt: _firedAt, notifyAttempts: _attempts, ...rest } = reminder;
+  return rest;
 }
 
 export function deleteReminder(reminders: Reminder[], id: string): Reminder[] {
@@ -53,7 +59,41 @@ export function listReminders(reminders: Reminder[]): Reminder[] {
 }
 
 export function toggleReminderCompletion(reminder: Reminder): Reminder {
-  return { ...reminder, completed: !reminder.completed, updatedAt: new Date().toISOString() };
+  // Ticking a reminder off is the strongest acknowledgement there is, so it
+  // also stops the badge counting it and the browser re-showing it.
+  return {
+    ...clearFiredState(reminder),
+    completed: !reminder.completed,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+/** A reminder whose alarm fired and that nobody has acted on yet. */
+export function needsAcknowledgement(reminder: Reminder): boolean {
+  return Boolean(reminder.firedAt) && !reminder.completed;
+}
+
+export function countUnacknowledged(reminders: Reminder[]): number {
+  return reminders.filter(needsAcknowledgement).length;
+}
+
+/**
+ * The user saw it. Stops the escalation without deciding the reminder is done:
+ * a one-off they merely glanced at stays pending — and therefore overdue —
+ * until they actually tick it off.
+ */
+export function acknowledgeReminder(reminder: Reminder, from: Date = new Date()): Reminder {
+  if (reminder.firedAt === undefined && reminder.notifyAttempts === undefined) return reminder;
+  return { ...clearFiredState(reminder), updatedAt: from.toISOString() };
+}
+
+/** Counts one re-show of an unacknowledged notification against its cap. */
+export function recordNotifyAttempt(reminder: Reminder, from: Date = new Date()): Reminder {
+  return {
+    ...reminder,
+    notifyAttempts: (reminder.notifyAttempts ?? 0) + 1,
+    updatedAt: from.toISOString(),
+  };
 }
 
 export function calculateNextAlarm(reminder: Reminder, from: Date = new Date()): Date | null {
@@ -88,15 +128,21 @@ export function calculateNextAlarm(reminder: Reminder, from: Date = new Date()):
 
 /**
  * Rolls a reminder forward after its alarm fired: repeating reminders move to
- * their next occurrence, one-off reminders are done.
+ * their next occurrence, one-off reminders stay where they are.
+ *
+ * Note what this deliberately does not do: complete the one-off. The browser
+ * having shown a notification says nothing about whether anyone was at the
+ * screen, so the reminder is marked as fired-and-unacknowledged and stays in
+ * the list — overdue and counted — until the user answers it.
  */
 export function advanceReminder(reminder: Reminder, from: Date = new Date()): Reminder {
   const next = calculateNextAlarm(reminder, from);
   const updatedAt = from.toISOString();
+  const fired = { firedAt: updatedAt, notifyAttempts: 0 };
 
   if (!next) {
-    return { ...reminder, completed: true, updatedAt };
+    return { ...reminder, ...fired, updatedAt };
   }
 
-  return { ...reminder, scheduledAt: next.toISOString(), updatedAt };
+  return { ...reminder, ...fired, scheduledAt: next.toISOString(), updatedAt };
 }

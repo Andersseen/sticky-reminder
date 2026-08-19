@@ -1,0 +1,65 @@
+name: Release on merge
+
+# A version bump reaching main *is* the release. Nothing has to be remembered
+# afterwards: no tag to push by hand, no workflow to dispatch.
+#
+# Merges that do not touch the version are the common case and cost one job:
+# the tag for that version already exists, so nothing else runs.
+on:
+  push:
+    branches: [main]
+
+# Never cancel a release that is mid-publish. Two bumps landing together queue
+# instead, and each still gets its own tag.
+concurrency:
+  group: release-on-merge
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Is this version already released?
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      new: ${{ steps.version.outputs.new }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Tags are the whole question being asked here, and the default
+          # shallow checkout does not fetch them.
+          fetch-depth: 0
+
+      - name: Compare the extension version against the existing tags
+        id: version
+        run: |
+          tag="v$(jq -r .version apps/extension/package.json)"
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            echo "$tag is already released. Bump apps/extension/package.json to cut a new one."
+            new=false
+          else
+            echo "$tag has no tag yet — releasing it."
+            new=true
+          fi
+          {
+            echo "tag=$tag"
+            echo "new=$new"
+          } >> "$GITHUB_OUTPUT"
+
+  release:
+    name: Release ${{ needs.check.outputs.tag }}
+    needs: check
+    if: needs.check.outputs.new == 'true'
+    permissions:
+      contents: write
+    # Called rather than triggered. A tag pushed with GITHUB_TOKEN deliberately
+    # does not start another workflow run, so tagging here and hoping
+    # release.yml's `push: tags` picks it up would leave the release silently
+    # unpublished. Calling it is a direct invocation with no event in between.
+    #
+    # The tag itself is created by the release, not before it: a run that fails
+    # halfway therefore leaves nothing behind, and re-running the failed job is
+    # all it takes to retry.
+    uses: ./.github/workflows/release.yml
+    with:
+      tag: ${{ needs.check.outputs.tag }}
+    secrets: inherit

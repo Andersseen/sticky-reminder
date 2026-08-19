@@ -38,7 +38,12 @@ export function isReminder(value: unknown): value is Reminder {
     isValidDate(reminder.updatedAt) &&
     isValidDate(reminder.scheduledAt) &&
     (reminder.repeat === 'none' || reminder.repeat === 'daily' || reminder.repeat === 'weekly') &&
-    typeof reminder.completed === 'boolean'
+    typeof reminder.completed === 'boolean' &&
+    // Optional, and absent on every reminder written before v0.4.0 — but a
+    // present-and-malformed value has to fail like any other field would.
+    (reminder.firedAt === undefined || isValidDate(reminder.firedAt)) &&
+    (reminder.notifyAttempts === undefined ||
+      (typeof reminder.notifyAttempts === 'number' && Number.isFinite(reminder.notifyAttempts)))
   );
 }
 
@@ -107,13 +112,29 @@ async function ensureCurrentSchema(): Promise<void> {
   await browser.storage.local.remove(LEGACY_STORAGE_KEY);
 }
 
-export async function loadReminders(): Promise<Reminder[]> {
-  await ensureCurrentSchema();
-  const result = await browser.storage.local.get(null);
-  return Object.entries(result)
+function readReminders(snapshot: Record<string, unknown>): Reminder[] {
+  return Object.entries(snapshot)
     .filter(([key]) => key.startsWith(REMINDER_KEY_PREFIX))
     .map(([, value]) => value)
     .filter(isReminder);
+}
+
+export async function loadReminders(): Promise<Reminder[]> {
+  await ensureCurrentSchema();
+  return readReminders(await browser.storage.local.get(null));
+}
+
+/**
+ * A read that never migrates and never writes.
+ *
+ * Anything reacting to `storage.onChanged` has to use this: `loadReminders`
+ * would stamp the schema version as a side effect of being asked a question,
+ * which both feeds another change event back into the listener and — because
+ * the migration returns early once the version is stamped — can strand a
+ * legacy record that had not been written yet.
+ */
+export async function peekReminders(): Promise<Reminder[]> {
+  return readReminders(await browser.storage.local.get(null));
 }
 
 export async function saveReminders(reminders: Reminder[]): Promise<void> {

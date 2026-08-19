@@ -15,7 +15,7 @@ exist, `.github/workflows/release.yml` submits every enabled tagged release.
 - Listing text and privacy answers: `.github/store-listing/`
 - Store screenshots and promo tile: `.github/store-assets/`
 - Public privacy policy: `PRIVACY.md` and
-  <https://sticky-reminder.pages.dev/privacy>
+  <https://andersseen.github.io/sticky-reminder/privacy>
 - Chrome and Firefox packages, Firefox review sources and checksums: generated
   by the Release workflow
 - Native sidebar UI: `side_panel` for Chromium builds and `sidebar_action` for

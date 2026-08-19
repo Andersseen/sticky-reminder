@@ -2,16 +2,27 @@
 
 html,
 body {
-  min-width: 320px;
-  min-height: 100vh;
+  /* Chromium and Firefox both let the user drag a sidebar narrower than the
+     320px this used to demand, and the old pairing with `overflow: hidden`
+     meant whatever did not fit — the submit button, the right edge of every
+     field — was simply unreachable. */
+  min-width: 240px;
+  height: 100%;
 }
 
 body {
   margin: 0;
-  overflow: hidden;
+  /* The topbar and the scrolling shell are the two rows. Sizing them here
+     rather than subtracting an assumed topbar height from 100vh is what keeps
+     the bottom of the panel on screen when the brand copy wraps. */
+  display: flex;
+  flex-direction: column;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .sr-topbar {
+  flex: 0 0 auto;
   padding-inline: 1rem;
 }
 
@@ -22,7 +33,10 @@ body {
 }
 
 .sidepanel-shell {
-  height: calc(100vh - 3.125rem);
+  flex: 1 1 auto;
+  /* Without this the shell refuses to shrink below its content and the scroll
+     never engages — the default `min-height: auto` on a flex item. */
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -41,8 +55,14 @@ body {
   box-shadow: 0 1px 2px hsl(var(--foreground) / 0.04);
 }
 
+/* The shell is a flex column, so its children default to shrinking. That is
+   what let the reminder list overflow its own section and paint across the
+   footer line below it: the panel was squeezed to 130px while the list inside
+   it still measured 194. Both panels size to their content and the shell
+   scrolls instead. */
+.composer-panel,
 .reminder-panel {
-  min-height: 0;
+  flex: 0 0 auto;
 }
 
 .list-head {

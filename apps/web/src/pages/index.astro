@@ -1,7 +1,7 @@
 ---
 import PopupMock from '../components/PopupMock.astro';
 import Layout from '../layouts/Layout.astro';
-import { url, CHROME_STORE_URL, REPO_URL } from '../lib/site';
+import { url, CHROME_STORE_URL, EXTENSION_VERSION, REPO_URL } from '../lib/site';
 
 const features = [
   {
@@ -103,7 +103,7 @@ const faq = [
       <div class="hero-copy">
         <span class="pill" and-motion="fade-in">
           <and-icon name="star" size="12"></and-icon>
-          v0.2.0 · Free and open source
+          v{EXTENSION_VERSION} · Free and open source
         </span>
 
         <h1 class="hero-title">

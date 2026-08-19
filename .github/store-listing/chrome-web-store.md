@@ -49,7 +49,7 @@ locally only. Select no collected-data categories in the dashboard.
 
 **Host permissions:** None.
 
-**Privacy policy:** <https://sticky-reminder.pages.dev/privacy>
+**Privacy policy:** <https://andersseen.github.io/sticky-reminder/privacy>
 
 ## Assets
 

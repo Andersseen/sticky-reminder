@@ -1,6 +1,17 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": ["**/.env.*local", "**/tsconfig*.json"],
+  // The last two are read across package boundaries, which Turbo cannot infer:
+  // a task only hashes files inside its own package, and `inputs` cannot point
+  // outside one. The site's build reads the extension's version and both builds
+  // read the site address, so without these a version bump or a moved domain
+  // would be served from a cache that predates it — which is how the site's
+  // version badge sat at v0.2.0 through the whole 0.3.0 release.
+  "globalDependencies": [
+    "**/.env.*local",
+    "**/tsconfig*.json",
+    "site.config.mjs",
+    "apps/extension/package.json"
+  ],
   "globalEnv": ["NODE_ENV", "CI"],
   "tasks": {
     "build": {
