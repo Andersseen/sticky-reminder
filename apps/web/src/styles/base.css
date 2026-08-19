@@ -468,7 +468,10 @@ a {
 .browser-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(12rem, 42%);
-  min-height: 27rem;
+  /* Tall enough for both reminder cards to finish above the frame's edge. The
+     sidebar column is narrow, so each card takes three lines rather than the
+     two this was sized for. */
+  min-height: 30rem;
   background: hsl(var(--background));
 }
 
@@ -652,20 +655,46 @@ a {
   gap: 0.1875rem;
   padding: 0.0625rem 0.4375rem;
   border-radius: 9999px;
-  background: hsl(var(--secondary));
-  color: hsl(var(--secondary-foreground));
+  /* Neutral, matching the real component: this palette's secondary is the
+     rose, and in a list where rose already means overdue every repeating
+     reminder read as an alert. */
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
   font-size: 0.5625rem;
   font-weight: 700;
 }
 
+/* Flex rather than a block of inline text, so the relative time and the date
+   each wrap as one unit. As loose inline text the separator was left dangling
+   at the end of the first line — "3 hours ago ·" — whenever the date moved
+   down, which in this narrow column is always. */
 .mock-when {
-  display: block;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
   font-size: 0.6875rem;
   color: hsl(var(--muted-foreground));
 }
 
+.mock-when strong,
+.mock-when .mock-when-date {
+  white-space: nowrap;
+}
+
+/* Carried by the date, so it can never outlive it on the line above. */
+.mock-when .mock-when-date::before {
+  content: "·";
+  margin-right: 0.375rem;
+  opacity: 0.6;
+}
+
 .browser-mock .mock {
   display: flex;
+  /* Without this the bar and the body lay out as two side-by-side columns:
+     the sidebar's own title ends up beside its reminder list, the list
+     overflows the frame, and `.browser-mock`'s `overflow: hidden` crops the
+     hero's centrepiece down to two characters per line. */
+  flex-direction: column;
   min-width: 0;
   max-width: none;
   margin: 0;
