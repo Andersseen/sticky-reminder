@@ -179,7 +179,8 @@ touching the UI:
 |----------|---------|--------------|
 | [`ci.yml`](.github/workflows/ci.yml) | push and PR to `main` | Lint, unit tests, both browser builds, then both E2E suites |
 | [`deploy-github-pages.yml`](.github/workflows/deploy-github-pages.yml) | push to `main` touching the site | Builds the site with the `/sticky-reminder/` base path and publishes it to GitHub Pages |
-| [`release.yml`](.github/workflows/release.yml) | a `v*` tag | Audits, lints, tests and zips both browser builds, then publishes them with Firefox review sources and checksums |
+| [`release-on-merge.yml`](.github/workflows/release-on-merge.yml) | push to `main` | Releases when `apps/extension/package.json` names a version that has no tag yet; otherwise does nothing |
+| [`release.yml`](.github/workflows/release.yml) | the above, a `v*` tag, or manually | Audits, lints, tests and zips both browser builds, then publishes them with Firefox review sources and checksums |
 
 ### Deploying the site
 
@@ -232,17 +233,27 @@ headers on top, which only Cloudflare acts on.
 
 ### Cutting a release
 
-Bump only `apps/extension/package.json`: WXT uses it for both manifests and the
-archive names, and the release workflow rejects a tag that disagrees with it.
-Then tag the exact commit and push that tag:
+Bump only `apps/extension/package.json` — WXT reads it for both manifests and
+the archive names — and merge that to `main`. That is the whole procedure.
 
-```bash
-git tag v0.2.0 && git push origin v0.2.0
-```
+[`release-on-merge.yml`](.github/workflows/release-on-merge.yml) checks whether
+`v<version>` already has a tag. If it does, the merge was an ordinary one and
+nothing happens. If it does not, it calls the release workflow, which audits,
+lints, tests, builds both browsers, runs both E2E suites, and only then
+publishes the release and creates the tag. A run that fails leaves no tag
+behind, so re-running the failed job is enough to retry.
+
+It *calls* the release rather than pushing a tag and letting the tag trigger it:
+a tag pushed with `GITHUB_TOKEN` deliberately does not start another workflow
+run, so that arrangement would leave releases silently unpublished.
+
+Both older routes still work — pushing a tag by hand
+(`git tag v0.4.0 && git push origin v0.4.0`), and running the workflow manually
+to verify a build and collect the artifacts without publishing anything.
 
 The initial store-account setup, required GitHub secrets and dry-run procedure
 are documented in [`STORE_PUBLISHING.md`](STORE_PUBLISHING.md). After that
-one-time bootstrap, the same tag submits the release to every enabled store.
+one-time bootstrap, the same release submits to every enabled store.
 
 ## License
 
