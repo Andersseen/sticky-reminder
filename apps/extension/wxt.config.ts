@@ -1,4 +1,5 @@
 import { defineConfig } from 'wxt';
+import { SITE_URL } from '../../site.config.mjs';
 
 const baseManifest = {
   name: 'Sticky Reminder',
@@ -10,7 +11,10 @@ const baseManifest = {
   // filenames and the release tag. Bump it there and nowhere else — a second
   // copy here silently wins and ships a build whose version contradicts the
   // tag it was released under.
-  homepage_url: 'https://sticky-reminder.pages.dev/',
+  // Ships to the stores and cannot be corrected without a new review, so it
+  // reads from the single definition rather than carrying its own copy — the
+  // previous literal pointed at a domain that had stopped resolving.
+  homepage_url: SITE_URL,
   action: {
     default_title: 'Sticky Reminder — new reminder',
   },

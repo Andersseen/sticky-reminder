@@ -6,9 +6,9 @@ the released build.
 
 ## Public URLs
 
-- Homepage: <https://sticky-reminder.pages.dev/>
+- Homepage: <https://andersseen.github.io/sticky-reminder/>
 - Support: <https://github.com/Andersseen/sticky-reminder/issues>
-- Privacy policy: <https://sticky-reminder.pages.dev/privacy>
+- Privacy policy: <https://andersseen.github.io/sticky-reminder/privacy>
 - Source: <https://github.com/Andersseen/sticky-reminder>
 
 ## Release checklist

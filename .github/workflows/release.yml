@@ -154,7 +154,7 @@ jobs:
             **Firefox** — download `sticky-reminder-*-firefox.zip`, open
             `about:debugging#/runtime/this-firefox` and use **Load Temporary Add-on**.
 
-            Full instructions: https://sticky-reminder.pages.dev/download
+            Full instructions: https://andersseen.github.io/sticky-reminder/download
 
             `sticky-reminder-*-sources.zip` contains the corresponding source
             tree for Firefox review. Verify downloads with `SHA256SUMS.txt`.

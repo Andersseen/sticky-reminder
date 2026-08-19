@@ -11,9 +11,9 @@
 </p>
 
 <p>
-  <b><a href="https://sticky-reminder.pages.dev/">Website</a></b> ·
-  <b><a href="https://sticky-reminder.pages.dev/download">Install</a></b> ·
-  <b><a href="https://sticky-reminder.pages.dev/privacy">Privacy</a></b> ·
+  <b><a href="https://andersseen.github.io/sticky-reminder/">Website</a></b> ·
+  <b><a href="https://andersseen.github.io/sticky-reminder/download">Install</a></b> ·
+  <b><a href="https://andersseen.github.io/sticky-reminder/privacy">Privacy</a></b> ·
   <b><a href="https://github.com/Andersseen/sticky-reminder/releases/latest">Releases</a></b> ·
   <b><a href="CHANGELOG.md">Changelog</a></b> ·
   <b><a href="CONTRIBUTING.md">Contributing</a></b>
@@ -49,7 +49,8 @@ two packages both are built from.
 | | |
 |---|---|
 | **Sidebar-first capture** | The sidebar opens on the form and stays beside the page. The toolbar popup remains available for a compact one-click flow. |
-| **Native notifications** | Reminders fire through the browser's own notification system, so they arrive whether or not the tab that created them still exists. |
+| **Native notifications** | Reminders fire through the browser's own notification system, so they arrive whether or not the tab that created them still exists. Each one carries **Mark as done** and **Snooze 10 minutes**. |
+| **Nothing gets lost** | Firing is not finishing. A reminder that rings and is not answered stays pending, counts on the toolbar badge, comes back if it timed out unseen, and is re-shown when the browser restarts. |
 | **Daily and weekly repeats** | A repeating reminder rolls forward the moment it fires, and skips the periods it slept through instead of firing a backlog. |
 | **Overdue at a glance** | Late reminders turn red and say how late. Search, filter and counters live on the options page. |
 | **Portable backup** | Export a readable JSON copy and merge it back in from the options page. The file stays under your control. |
@@ -62,7 +63,7 @@ Grab the build for your browser from the [latest release](https://github.com/And
 - **Chrome / Edge / Brave / Arc** — unzip `sticky-reminder-*-chrome.zip`, open `chrome://extensions` or `edge://extensions`, turn on Developer mode, then **Load unpacked**. Pin the toolbar icon and use its sidebar button where supported.
 - **Firefox** — open `about:debugging#/runtime/this-firefox` and **Load Temporary Add-on** with `sticky-reminder-*-firefox.zip`. Open it from Firefox's sidebar menu.
 
-The [download page](https://sticky-reminder.pages.dev/download) walks
+The [download page](https://andersseen.github.io/sticky-reminder/download) walks
 through both. Releases also include the source archive required for Firefox
 review and SHA-256 checksums for every download.
 
@@ -72,7 +73,7 @@ review and SHA-256 checksums for every download.
 sticky-reminder/
 ├── apps/
 │   ├── extension/   # The extension — WXT, sidebar, popup, options, background worker
-│   └── web/         # The site — Astro, deployed to Cloudflare Pages and GitHub Pages
+│   └── web/         # The site — Astro, deployed to GitHub Pages
 └── packages/
     ├── core/        # Reminder logic: pure TypeScript, no browser APIs
     └── ui/          # The two app-specific Web Components (Lit) + shared stylesheet
@@ -180,18 +181,22 @@ touching the UI:
 | [`deploy-github-pages.yml`](.github/workflows/deploy-github-pages.yml) | push to `main` touching the site | Builds the site with the `/sticky-reminder/` base path and publishes it to GitHub Pages |
 | [`release.yml`](.github/workflows/release.yml) | a `v*` tag | Audits, lints, tests and zips both browser builds, then publishes them with Firefox review sources and checksums |
 
-Cloudflare Pages is not in that table on purpose: it watches the repository
-itself and builds without going through Actions.
-
 ### Deploying the site
 
-The site goes out to two hosts from the same source, differing only in where they
-serve it from: Cloudflare Pages serves the root of its own hostname, GitHub Pages
-serves a project sub-path. `SITE_URL` and `SITE_BASE` carry that difference into
-the Astro build, so no internal link may be written as a plain absolute path —
-`url()` in [`src/lib/site.ts`](apps/web/src/lib/site.ts) prefixes them.
+> **Currently only GitHub Pages is live.** The Cloudflare Pages setup described
+> below is kept because it still works if you reconnect it, but its domain
+> (`sticky-reminder.pages.dev`) no longer resolves and nothing in the repository
+> builds it. [`site.config.mjs`](site.config.mjs) holds the one definition of the
+> live address; change it there and the site, the manifest and every link follow.
 
-**Cloudflare Pages** is connected through the dashboard (Workers & Pages →
+The site is written to go out to two hosts from the same source, differing only
+in where they serve it from: Cloudflare Pages serves the root of its own
+hostname, GitHub Pages serves a project sub-path. `SITE_URL` and `SITE_BASE`
+carry that difference into the Astro build, so no internal link may be written as
+a plain absolute path — `url()` in
+[`src/lib/site.ts`](apps/web/src/lib/site.ts) prefixes them.
+
+**Cloudflare Pages** would be connected through the dashboard (Workers & Pages →
 Create → Pages → Connect to Git). It needs no GitHub secrets, and it builds every
 branch, so pull requests get a preview URL for free. The settings:
 
@@ -214,10 +219,13 @@ setting once the site is real:
 | `PUBLIC_EDGE_STORE_URL` | Production | Shows the signed Microsoft Edge Add-ons install button once the listing exists |
 | `PUBLIC_FIREFOX_STORE_URL` | Production | Shows the signed Firefox Add-ons install button once the listing exists |
 
-`https://sticky-reminder.pages.dev` is the site's published address, so it is the
-one that gets indexed: the GitHub Pages build points `<link rel="canonical">`
-there rather than at itself. Should that ever flip, the `SITE_CANONICAL`
-repository variable overrides it without touching the workflow.
+`https://andersseen.github.io/sticky-reminder/` is the site's published address
+and its single definition lives in [`site.config.mjs`](site.config.mjs), which
+the Astro config, the site's link helpers and the extension manifest all read.
+The GitHub Pages build is currently the only live target, so each page is its
+own canonical. Point the `SITE_CANONICAL` repository variable at a root-served
+domain to hand the canonical over to it — it is applied without this deploy's
+`/<repo>/` prefix, so it only suits a host that serves from the root.
 
 [`apps/web/public/_headers`](apps/web/public/_headers) adds caching and security
 headers on top, which only Cloudflare acts on.

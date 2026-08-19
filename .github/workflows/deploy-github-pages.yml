@@ -1,8 +1,9 @@
 name: Deploy site (GitHub Pages)
 
-# One of the site's two deploy targets — see deploy-cloudflare-pages.yml for the
-# other. Every push to main republishes, and each run shows up under the
-# repository's Deployments as the `github-pages` environment.
+# The site's only live deploy target. Every push to main republishes, and each
+# run shows up under the repository's Deployments as the `github-pages`
+# environment. There was once a Cloudflare Pages target alongside it; nothing
+# in the repo builds one now and its domain no longer resolves.
 on:
   push:
     branches: [main]
@@ -51,11 +52,14 @@ jobs:
           # baked into the build rather than assumed to be the root.
           SITE_URL: ${{ steps.pages.outputs.origin }}
           SITE_BASE: ${{ steps.pages.outputs.base_path }}
-          # Both targets serve the same pages, so one of them has to own the
-          # canonical tag or they compete as duplicates. Cloudflare is the
-          # published address, so this deploy points there rather than at
-          # itself; the repository variable overrides it if that ever flips.
-          SITE_CANONICAL: ${{ vars.SITE_CANONICAL || 'https://sticky-reminder.pages.dev' }}
+          # Left empty so each page is its own canonical. This used to hardcode
+          # a Cloudflare Pages domain that had stopped resolving, which pointed
+          # every published page's canonical at a dead URL. Set the
+          # SITE_CANONICAL repository variable to hand it back to a root-served
+          # domain once there is a second live target to compete with — it is
+          # applied without this deploy's `/<repo>/` prefix, which is exactly
+          # what makes it wrong for a host that serves from a sub-path.
+          SITE_CANONICAL: ${{ vars.SITE_CANONICAL }}
           PUBLIC_CHROME_STORE_URL: ${{ vars.PUBLIC_CHROME_STORE_URL }}
           PUBLIC_EDGE_STORE_URL: ${{ vars.PUBLIC_EDGE_STORE_URL }}
           PUBLIC_FIREFOX_STORE_URL: ${{ vars.PUBLIC_FIREFOX_STORE_URL }}

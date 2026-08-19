@@ -1,5 +1,10 @@
 /** Repo-derived constants, so a link only ever has one definition. */
+export { SITE_URL } from '../../../../site.config.mjs';
+
 export const REPO_URL = 'https://github.com/Andersseen/sticky-reminder';
+
+/** Injected by astro.config.mjs from the extension's package.json. */
+export const EXTENSION_VERSION: string = __EXTENSION_VERSION__;
 export const RELEASES_URL = `${REPO_URL}/releases`;
 export const LATEST_RELEASE_URL = `${RELEASES_URL}/latest`;
 export const ISSUES_URL = `${REPO_URL}/issues`;

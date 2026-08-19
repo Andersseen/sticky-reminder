@@ -18,11 +18,11 @@
 >
 > The source code is available under the MIT license.
 
-**Homepage:** <https://sticky-reminder.pages.dev/>
+**Homepage:** <https://andersseen.github.io/sticky-reminder/>
 
 **Support:** <https://github.com/Andersseen/sticky-reminder/issues>
 
-**Privacy policy:** <https://sticky-reminder.pages.dev/privacy>
+**Privacy policy:** <https://andersseen.github.io/sticky-reminder/privacy>
 
 ## Review notes
 
