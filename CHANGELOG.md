@@ -2,6 +2,23 @@
 
 All notable changes are documented here. Versions follow Semantic Versioning.
 
+## [0.3.0] — 2026-08-19
+
+### Added
+
+- Native browser sidebar experience for Chromium and Firefox builds.
+- Notification diagnostics button in Options to verify browser/OS notifications.
+- Manual Chromium launcher for local extension testing without loading unpacked
+  builds by hand.
+- Unit coverage script and CI coverage enforcement.
+
+### Changed
+
+- Shared reminder UI logic between popup and sidebar so both stay in sync.
+- Public install page now documents Edge, sidebar usage and developer flow.
+- Extension E2E now covers natural alarm notifications and diagnostic
+  notifications.
+
 ## [0.2.0] — 2026-08-18
 
 ### Added
@@ -25,6 +42,6 @@ All notable changes are documented here. Versions follow Semantic Versioning.
 - Initial browser extension with one-time, daily and weekly reminders, native
   notifications, popup capture and a searchable options page.
 
+[0.3.0]: https://github.com/Andersseen/sticky-reminder/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Andersseen/sticky-reminder/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Andersseen/sticky-reminder/releases/tag/v0.1.0
-
