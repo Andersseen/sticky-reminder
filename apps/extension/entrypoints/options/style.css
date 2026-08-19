@@ -189,3 +189,32 @@
     transition: none;
   }
 }
+
+/* Reminders that fired while nobody was looking. The count exists because a
+   notification is gone in seconds and, until now, a one-off that nobody saw
+   quietly moved itself to Done. */
+.stat-waiting[hidden] {
+  display: none;
+}
+
+.stat-waiting .stat-value {
+  color: hsl(var(--destructive));
+}
+
+.permission-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0.875rem 1rem;
+  border: var(--border-width, 1px) solid hsl(var(--destructive) / 0.35);
+  border-radius: calc(var(--radius) * 1.25);
+  background: hsl(var(--destructive) / 0.08);
+  color: hsl(var(--destructive));
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.permission-warning[hidden] {
+  display: none;
+}

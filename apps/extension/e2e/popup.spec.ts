@@ -165,12 +165,13 @@ test('a due one-off reminder creates a browser notification naturally', async ()
             chrome.notifications.getAll(),
           ]);
           const reminder = Object.values(store).find(
-            (value): value is { id: string; completed: boolean } =>
+            (value): value is { id: string; completed: boolean; firedAt?: string } =>
               Boolean(value) && typeof value === 'object' && 'id' in value && value.id === id,
           );
 
           return {
             completed: reminder?.completed,
+            waiting: Boolean(reminder?.firedAt),
             notified: Object.hasOwn(notifications, id),
           };
         }, reminderId as string),
@@ -180,7 +181,11 @@ test('a due one-off reminder creates a browser notification naturally', async ()
         message: 'the natural browser alarm never produced a notification',
       },
     )
-    .toEqual({ completed: true, notified: true });
+    // Firing is not finishing: the reminder is marked as waiting for an answer
+    // and stays pending, so a notification nobody saw cannot silently complete
+    // it. Only the user ticking it off, or the notification's own Done button,
+    // sets `completed`.
+    .toEqual({ completed: false, waiting: true, notified: true });
 
   await page.close();
 });

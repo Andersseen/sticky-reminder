@@ -3,10 +3,15 @@ import '@andersseen/web-components/components/and-button.js';
 import '@andersseen/web-components/components/and-icon.js';
 import './style.css';
 import { MotionController } from '@andersseen/motion';
-import { type Reminder, listReminders, toggleReminderCompletion } from '@sticky-reminder/core';
+import {
+  type Reminder,
+  countUnacknowledged,
+  listReminders,
+  toggleReminderCompletion,
+} from '@sticky-reminder/core';
 import { isOverdue, registerStickyIcons } from '@sticky-reminder/ui';
 import { cancelReminderAlarm, scheduleReminderAlarm, syncReminderAlarms } from '../../utils/alarms';
-import { sendTestNotification } from '../../utils/notifications';
+import { notificationsAllowed, sendTestNotification } from '../../utils/notifications';
 import {
   createReminderBackup,
   importReminderBackup,
@@ -28,6 +33,8 @@ const backupFile = document.getElementById('backup-file') as HTMLInputElement;
 const backupStatus = document.getElementById('backup-status') as HTMLElement;
 const testNotification = document.getElementById('test-notification') as HTMLElement;
 const notificationStatus = document.getElementById('notification-status') as HTMLElement;
+const permissionWarning = document.getElementById('permission-warning') as HTMLElement;
+const waitingStat = document.querySelector('.stat-waiting') as HTMLElement;
 
 const MAX_BACKUP_BYTES = 5 * 1024 * 1024;
 
@@ -70,18 +77,24 @@ function renderEmptyState(): HTMLElement {
 
 function renderStats(reminders: Reminder[]) {
   const pending = reminders.filter((r) => !r.completed);
+  const waiting = countUnacknowledged(reminders);
   const stats: Record<string, number> = {
     all: reminders.length,
     total: reminders.length,
     pending: pending.length,
     overdue: pending.filter((r) => isOverdue(new Date(r.scheduledAt))).length,
     completed: reminders.filter((r) => r.completed).length,
+    waiting,
   };
 
   for (const node of document.querySelectorAll<HTMLElement>('[data-stat], [data-count]')) {
     const key = node.dataset.stat ?? node.dataset.count;
     if (key) node.textContent = String(stats[key] ?? 0);
   }
+
+  // A permanent "Not answered: 0" would be noise; it only earns a slot when
+  // there is something in it.
+  waitingStat.hidden = waiting === 0;
 }
 
 function renderList(reminders: Reminder[]) {
@@ -214,4 +227,14 @@ container.addEventListener('sr-reminder-delete', async (event) => {
   await refreshList();
 });
 
+/**
+ * A reminder the browser is not allowed to show is worth saying out loud
+ * before someone trusts it with something that matters, rather than leaving
+ * them to discover it by the notification that never arrived.
+ */
+async function checkNotificationPermission() {
+  permissionWarning.hidden = (await notificationsAllowed()) !== false;
+}
+
 void refreshList();
+void checkNotificationPermission();

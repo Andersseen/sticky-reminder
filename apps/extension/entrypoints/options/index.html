@@ -25,7 +25,19 @@
     </header>
 
     <main class="options" and-layout="vertical gap:lg p:lg">
+      <p id="permission-warning" class="permission-warning" role="alert" hidden>
+        <and-icon name="bell" size="14"></and-icon>
+        <span>
+          This browser is currently blocking notifications, so reminders cannot reach you. Allow
+          notifications for this browser in your operating system settings, then send a test below.
+        </span>
+      </p>
+
       <section class="stats" and-layout="horizontal gap:sm wrap:wrap" and-motion="fade-in">
+        <and-card padded class="stat stat-waiting">
+          <span class="stat-value" data-stat="waiting">0</span>
+          <span class="stat-label">Unanswered</span>
+        </and-card>
         <and-card padded class="stat">
           <span class="stat-value" data-stat="total">0</span>
           <span class="stat-label">Total</span>

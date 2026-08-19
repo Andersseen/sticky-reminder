@@ -1,13 +1,17 @@
 import { addDays, addWeeks, parseISO } from 'date-fns';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  acknowledgeReminder,
   advanceReminder,
   calculateNextAlarm,
+  countUnacknowledged,
   createReminder,
   deleteReminder,
   formatNotificationBody,
   formatNotificationTitle,
   listReminders,
+  needsAcknowledgement,
+  recordNotifyAttempt,
   toggleReminderCompletion,
   updateReminder,
 } from '../src';
@@ -138,13 +142,26 @@ describe('calculateNextAlarm', () => {
 describe('advanceReminder', () => {
   const now = new Date('2026-08-14T12:00:00.000Z');
 
-  it('completes a one-off reminder that already fired', () => {
+  it('leaves a fired one-off pending so a notification nobody saw is not treated as done', () => {
     const past = new Date('2026-08-14T11:00:00.000Z').toISOString();
     const reminder = createReminder(makeInput({ scheduledAt: past, repeat: 'none' }));
 
     const advanced = advanceReminder(reminder, now);
-    expect(advanced.completed).toBe(true);
+    expect(advanced.completed).toBe(false);
     expect(advanced.scheduledAt).toBe(past);
+    expect(advanced.firedAt).toBe(now.toISOString());
+    expect(needsAcknowledgement(advanced)).toBe(true);
+  });
+
+  it('marks a repeating reminder as unanswered while rolling it forward', () => {
+    const scheduled = new Date('2026-08-14T11:00:00.000Z');
+    const reminder = createReminder(
+      makeInput({ scheduledAt: scheduled.toISOString(), repeat: 'daily' }),
+    );
+
+    const advanced = advanceReminder(reminder, now);
+    expect(advanced.firedAt).toBe(now.toISOString());
+    expect(needsAcknowledgement(advanced)).toBe(true);
   });
 
   it('rolls a repeating reminder forward instead of completing it', () => {
@@ -178,5 +195,63 @@ describe('formatNotification', () => {
     const reminder = createReminder(makeInput({ title: 'Hello', body: 'World' }));
     expect(formatNotificationTitle(reminder)).toContain('Hello');
     expect(formatNotificationBody(reminder)).toContain('World');
+  });
+});
+
+describe('acknowledgement', () => {
+  const now = new Date('2026-08-14T12:00:00.000Z');
+  const past = new Date('2026-08-14T11:00:00.000Z').toISOString();
+
+  function fired(overrides: Partial<CreateReminderInput> = {}) {
+    return advanceReminder(
+      createReminder(makeInput({ scheduledAt: past, repeat: 'none', ...overrides })),
+      now,
+    );
+  }
+
+  it('stops counting a reminder once it is acknowledged', () => {
+    const reminder = fired();
+    expect(countUnacknowledged([reminder])).toBe(1);
+
+    const seen = acknowledgeReminder(reminder, now);
+    expect(seen.firedAt).toBeUndefined();
+    expect(seen.notifyAttempts).toBeUndefined();
+    expect(countUnacknowledged([seen])).toBe(0);
+  });
+
+  it('leaves a merely acknowledged one-off pending, so it stays overdue until it is ticked', () => {
+    const seen = acknowledgeReminder(fired(), now);
+    expect(seen.completed).toBe(false);
+  });
+
+  it('returns the same reminder when there is nothing to acknowledge', () => {
+    const reminder = createReminder(makeInput());
+    expect(acknowledgeReminder(reminder, now)).toBe(reminder);
+  });
+
+  it('treats ticking a reminder off as the strongest acknowledgement', () => {
+    const done = toggleReminderCompletion(fired());
+    expect(done.completed).toBe(true);
+    expect(done.firedAt).toBeUndefined();
+    expect(needsAcknowledgement(done)).toBe(false);
+  });
+
+  it('clears the fired state when the reminder is edited', () => {
+    const edited = updateReminder(fired(), { title: 'Renamed' });
+    expect(edited.firedAt).toBeUndefined();
+    expect(needsAcknowledgement(edited)).toBe(false);
+  });
+
+  it('never counts a completed reminder, however it was left', () => {
+    expect(needsAcknowledgement({ ...fired(), completed: true })).toBe(false);
+  });
+
+  it('counts re-shows so the escalation can stop', () => {
+    let reminder = fired();
+    expect(reminder.notifyAttempts).toBe(0);
+
+    reminder = recordNotifyAttempt(reminder, now);
+    reminder = recordNotifyAttempt(reminder, now);
+    expect(reminder.notifyAttempts).toBe(2);
   });
 });

@@ -1,7 +1,7 @@
 import '@andersseen/web-components/components/and-badge.js';
 import '@andersseen/web-components/components/and-button.js';
 import '@andersseen/web-components/components/and-icon.js';
-import type { Reminder } from '@sticky-reminder/core';
+import { type Reminder, needsAcknowledgement } from '@sticky-reminder/core';
 import { LitElement, css, html, nothing } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { formatRelativeTime, isOverdue } from '../utils/relative-time';
@@ -63,7 +63,8 @@ export class SrReminderItem extends LitElement {
       width: 3px;
       background: hsl(var(--primary));
     }
-    .item[data-state='overdue']::before {
+    .item[data-state='overdue']::before,
+    .item[data-waiting='true']::before {
       background: hsl(var(--destructive));
     }
     .item[data-state='done']::before {
@@ -102,12 +103,20 @@ export class SrReminderItem extends LitElement {
       gap: 0.25rem;
       padding: 0.0625rem 0.4375rem;
       border-radius: 9999px;
-      background: hsl(var(--secondary));
-      color: hsl(var(--secondary-foreground));
+      /* Not --secondary: this palette's secondary is the rose, which in a list
+         where rose already means "overdue" made every repeating reminder read
+         as an alert. A repeat is neutral information. */
+      background: hsl(var(--muted));
+      color: hsl(var(--muted-foreground));
       font-size: 0.625rem;
       font-weight: 600;
       line-height: 1.5;
       white-space: nowrap;
+    }
+    /* The one badge that *is* an alert: it fired and nobody answered. */
+    and-badge.waiting {
+      background: hsl(var(--destructive) / 0.14);
+      color: hsl(var(--destructive));
     }
     .title {
       font-size: 0.875rem;
@@ -125,9 +134,11 @@ export class SrReminderItem extends LitElement {
       display: flex;
       align-items: center;
       gap: 0.375rem;
-      /* One line, truncating the date if it has to: wrapping would either
-         orphan the separator or start a line with it. */
-      flex-wrap: nowrap;
+      /* Wrapping is safe because the separator below belongs to the date, so a
+         second line can never start with a dangling "·". Truncating instead
+         cost more than it saved: in a narrow sidebar it cut the year off
+         mid-number and produced dates like "19 Aug 20…". */
+      flex-wrap: wrap;
       margin-top: 0.125rem;
       font-size: 0.6875rem;
       color: hsl(var(--muted-foreground));
@@ -139,9 +150,7 @@ export class SrReminderItem extends LitElement {
       color: hsl(var(--foreground) / 0.75);
     }
     .absolute {
-      overflow: hidden;
       white-space: nowrap;
-      text-overflow: ellipsis;
     }
     .item[data-state='overdue'] .relative {
       color: hsl(var(--destructive));
@@ -190,8 +199,15 @@ export class SrReminderItem extends LitElement {
         ? 'overdue'
         : 'pending';
 
+    const waiting = needsAcknowledgement(reminder);
+
     return html`
-      <div class="item" data-state=${state} data-completed=${String(reminder.completed)}>
+      <div
+        class="item"
+        data-state=${state}
+        data-waiting=${String(waiting)}
+        data-completed=${String(reminder.completed)}
+      >
         <and-button
           class="toggle"
           size="icon"
@@ -205,6 +221,14 @@ export class SrReminderItem extends LitElement {
         <div class="body">
           <div class="heading">
             <span class="title">${reminder.title}</span>
+            ${
+              waiting
+                ? html`<and-badge class="waiting" title="This one fired and you have not answered it">
+                  <and-icon name="bell" size="12"></and-icon>
+                  Not answered
+                </and-badge>`
+                : nothing
+            }
             ${
               repeatLabel
                 ? html`<and-badge variant="secondary">
