@@ -181,3 +181,12 @@ and-alert and-icon {
 [hidden] {
   display: none !important;
 }
+
+/* `and-tabs-trigger` carries `transition-all` on its own host and does not
+   qualify it, so the switch between filters animates however the atom was
+   built. The control this replaced respected the setting; it still has to. */
+@media (prefers-reduced-motion: reduce) {
+  .sr-tabs and-tabs-trigger {
+    transition: none;
+  }
+}

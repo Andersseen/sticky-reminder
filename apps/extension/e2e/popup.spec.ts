@@ -342,3 +342,23 @@ test('an icon-only button names itself, inside the popup', async () => {
 
   await page.close();
 });
+
+test('the filters hold still when motion is reduced', async () => {
+  const page = await openPopup();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+
+  // `and-tabs-trigger` carries an unqualified `transition-all` on its own host,
+  // so the setting only reaches it from here. The control this replaced
+  // honoured it, and losing that in the swap would have been silent.
+  const duration = () =>
+    page
+      .locator('and-tabs-trigger[value="pending"]')
+      .evaluate((el) => getComputedStyle(el).transitionDuration);
+
+  expect(await duration()).toBe('0s');
+
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  expect(await duration()).not.toBe('0s');
+
+  await page.close();
+});
