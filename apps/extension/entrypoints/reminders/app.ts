@@ -1,6 +1,20 @@
+// Must stay above the component imports: it fills the icon registry, and
+// defining an `and-*` element renders every icon inside it against whatever the
+// registry holds at that instant.
+import '@sticky-reminder/ui/icons';
+import '@andersseen/web-components/components/and-badge.js';
 import '@andersseen/web-components/components/and-button.js';
 import '@andersseen/web-components/components/and-card.js';
 import '@andersseen/web-components/components/and-icon.js';
+import '@andersseen/web-components/components/and-skeleton.js';
+import '@andersseen/web-components/components/and-tabs-content.js';
+import '@andersseen/web-components/components/and-tabs-list.js';
+import '@andersseen/web-components/components/and-tabs-trigger.js';
+import '@andersseen/web-components/components/and-tabs.js';
+import '@andersseen/web-components/components/and-tooltip.js';
+// Defines <sr-reminder-form>, <sr-reminder-item> and <sr-empty-state>. The page
+// only ever names them in markup, so without this nothing pulls them in.
+import '@sticky-reminder/ui';
 import { MotionController } from '@andersseen/motion';
 import {
   type Reminder,
@@ -9,11 +23,7 @@ import {
   toggleReminderCompletion,
   updateReminder,
 } from '@sticky-reminder/core';
-import {
-  type ReminderFormData,
-  type SrReminderForm,
-  registerStickyIcons,
-} from '@sticky-reminder/ui';
+import type { ReminderFormData, SrReminderForm } from '@sticky-reminder/ui';
 import { browser } from 'wxt/browser';
 import { cancelReminderAlarm, scheduleReminderAlarm } from '../../utils/alarms';
 import {
@@ -22,8 +32,6 @@ import {
   removeReminder,
   updateStoredReminder,
 } from '../../utils/storage';
-
-registerStickyIcons();
 
 type Filter = 'pending' | 'completed';
 
@@ -40,12 +48,29 @@ const EMPTY_COPY: Record<Filter, { icon: string; title: string; description: str
   },
 };
 
-const container = document.getElementById('reminders') as HTMLElement;
 const form = document.querySelector('sr-reminder-form') as SrReminderForm;
 const formHeading = document.getElementById('form-heading') as HTMLElement;
-const filterBar = document.getElementById('filters') as HTMLElement;
+const tabs = document.getElementById('filters') as HTMLElement;
 const optionsButton = document.getElementById('open-options') as HTMLElement;
 const sidePanelButton = document.getElementById('open-sidebar') as HTMLElement | null;
+const sidePanelTip = document.getElementById('open-sidebar-tip') as HTMLElement | null;
+
+/** The panel `and-tabs` is currently showing. Its id is generated, so: by value. */
+function panel(name: Filter = filter): HTMLElement {
+  return tabs.querySelector(`and-tabs-content[value="${name}"]`) as HTMLElement;
+}
+
+/**
+ * Fills the panel on screen and empties the others. Only one filter is visible
+ * at a time, and a hidden panel left holding its last render keeps rows for
+ * reminders that may since have been edited or deleted.
+ */
+function fillPanel(...nodes: Node[]) {
+  const active = panel();
+  for (const content of tabs.querySelectorAll<HTMLElement>('and-tabs-content')) {
+    content.replaceChildren(...(content === active ? nodes : []));
+  }
+}
 
 // Only the static chrome animates. A popup is barely taller than its content,
 // so scroll-triggered reveals on the list would leave rows that start below the
@@ -80,9 +105,25 @@ function renderCounts(reminders: Reminder[]) {
     completed: reminders.filter((r) => r.completed).length,
   };
 
-  for (const node of filterBar.querySelectorAll<HTMLElement>('[data-count]')) {
+  for (const node of tabs.querySelectorAll<HTMLElement>('[data-count]')) {
     node.textContent = String(counts[node.dataset.count as Filter]);
   }
+}
+
+/**
+ * Reading storage is fast but not instant, and an empty panel in the meantime
+ * reads as "you have no reminders" — the one thing the list must never say
+ * while it still has no idea. Sized to a row so nothing jumps when the real
+ * ones land.
+ */
+function renderLoading() {
+  fillPanel(
+    ...Array.from({ length: 2 }, () => {
+      const skeleton = document.createElement('and-skeleton');
+      skeleton.height = '62px';
+      return skeleton;
+    }),
+  );
 }
 
 function renderList(reminders: Reminder[]) {
@@ -90,13 +131,13 @@ function renderList(reminders: Reminder[]) {
 
   const visible = listReminders(reminders.filter(matchesFilter));
   if (visible.length === 0) {
-    container.replaceChildren(renderEmptyState());
+    fillPanel(renderEmptyState());
     return;
   }
 
   // Built as elements rather than an HTML string: reminder titles and notes are
   // user input and must never be parsed as markup.
-  container.replaceChildren(
+  fillPanel(
     ...visible.map((reminder) => {
       const item = document.createElement('sr-reminder-item');
       item.reminder = reminder;
@@ -163,14 +204,10 @@ async function openSidePanel() {
   window.close();
 }
 
-filterBar.addEventListener('click', (event) => {
-  const tab = (event.target as HTMLElement).closest<HTMLElement>('[data-filter]');
-  if (!tab || tab.dataset.filter === filter) return;
-
-  filter = tab.dataset.filter as Filter;
-  for (const node of filterBar.querySelectorAll<HTMLElement>('[data-filter]')) {
-    node.setAttribute('aria-selected', String(node === tab));
-  }
+// `and-tabs` owns the selection, the roving tabindex and the arrow keys; all
+// that is left is to fill the panel it just switched to.
+tabs.addEventListener('andTabChange', (event) => {
+  filter = (event as CustomEvent<Filter>).detail;
   void refreshList();
 });
 
@@ -179,7 +216,8 @@ optionsButton.addEventListener('click', () => {
 });
 
 if (sidePanelButton && canOpenSidePanel()) {
-  sidePanelButton.removeAttribute('hidden');
+  // The tooltip wraps the button, so it is the tooltip that has to appear.
+  sidePanelTip?.removeAttribute('hidden');
   sidePanelButton.addEventListener('click', () => {
     void openSidePanel();
   });
@@ -210,7 +248,7 @@ form.addEventListener('sr-submit', async (event) => {
 
 form.addEventListener('sr-cancel', startCreating);
 
-container.addEventListener('sr-reminder-toggle', async (event) => {
+tabs.addEventListener('sr-reminder-toggle', async (event) => {
   const { id } = (event as CustomEvent<{ id: string }>).detail;
   const reminder = (await loadReminders()).find((r) => r.id === id);
   if (!reminder) return;
@@ -223,11 +261,11 @@ container.addEventListener('sr-reminder-toggle', async (event) => {
   await refreshList();
 });
 
-container.addEventListener('sr-reminder-edit', (event) => {
+tabs.addEventListener('sr-reminder-edit', (event) => {
   void startEditing((event as CustomEvent<{ id: string }>).detail.id);
 });
 
-container.addEventListener('sr-reminder-delete', async (event) => {
+tabs.addEventListener('sr-reminder-delete', async (event) => {
   const { id } = (event as CustomEvent<{ id: string }>).detail;
   await cancelReminderAlarm(id);
   await removeReminder(id);
@@ -235,4 +273,5 @@ container.addEventListener('sr-reminder-delete', async (event) => {
   await refreshList();
 });
 
+renderLoading();
 void refreshList();

@@ -74,7 +74,7 @@ test('the counters describe the whole list', async () => {
   await expect(page.locator('[data-stat="pending"]')).toHaveText('2');
   await expect(page.locator('[data-stat="overdue"]')).toHaveText('1');
   await expect(page.locator('[data-stat="completed"]')).toHaveText('1');
-  await expect(page.locator('sr-reminder-item')).toHaveCount(3);
+  await expect(page.locator('and-tabs-content:not([hidden]) sr-reminder-item')).toHaveCount(3);
 
   await page.close();
 });
@@ -82,19 +82,23 @@ test('the counters describe the whole list', async () => {
 test('filtering and searching narrow the same list', async () => {
   const page = await openOptions();
 
-  await page.locator('[data-filter="completed"]').click();
-  await expect(page.locator('sr-reminder-item')).toHaveCount(1);
-  await expect(page.locator('sr-reminder-item')).toContainText('Renew the domain');
+  await page.locator('and-tabs-trigger[value="completed"]').click();
+  await expect(page.locator('and-tabs-content:not([hidden]) sr-reminder-item')).toHaveCount(1);
+  await expect(page.locator('and-tabs-content:not([hidden]) sr-reminder-item')).toContainText(
+    'Renew the domain',
+  );
 
-  await page.locator('[data-filter="all"]').click();
-  await page.locator('#search').fill('balcony');
+  await page.locator('and-tabs-trigger[value="all"]').click();
+  await page.locator('#search input').fill('balcony');
 
   // The note is searched, not just the title.
-  await expect(page.locator('sr-reminder-item')).toHaveCount(1);
-  await expect(page.locator('sr-reminder-item')).toContainText('Water the plants');
+  await expect(page.locator('and-tabs-content:not([hidden]) sr-reminder-item')).toHaveCount(1);
+  await expect(page.locator('and-tabs-content:not([hidden]) sr-reminder-item')).toContainText(
+    'Water the plants',
+  );
 
-  await page.locator('#search').fill('nothing matches this');
-  await expect(page.locator('#reminders')).toContainText('No matches');
+  await page.locator('#search input').fill('nothing matches this');
+  await expect(page.locator('and-tabs-content:not([hidden])')).toContainText('No matches');
 
   await page.close();
 });
@@ -116,7 +120,7 @@ test('deleting from the options page clears the alarm too', async () => {
 
   await page.locator('[data-id="soon"] [aria-label="Delete reminder"] button').click();
 
-  await expect(page.locator('sr-reminder-item')).toHaveCount(2);
+  await expect(page.locator('and-tabs-content:not([hidden]) sr-reminder-item')).toHaveCount(2);
   expect(await page.evaluate(() => chrome.alarms.getAll())).toHaveLength(0);
 
   await page.close();
@@ -132,8 +136,10 @@ test('an existing v0.1.0 reminder is migrated on first load', async () => {
 
   await page.reload();
 
-  await expect(page.locator('sr-reminder-item')).toHaveCount(1);
-  await expect(page.locator('sr-reminder-item')).toContainText('Daily standup');
+  await expect(page.locator('and-tabs-content:not([hidden]) sr-reminder-item')).toHaveCount(1);
+  await expect(page.locator('and-tabs-content:not([hidden]) sr-reminder-item')).toContainText(
+    'Daily standup',
+  );
   const keys = await page.evaluate(async () => Object.keys(await chrome.storage.local.get(null)));
   expect(keys).not.toContain('reminders');
   expect(keys.some((key) => key.startsWith('stickyReminder.reminder.'))).toBe(true);
@@ -179,7 +185,7 @@ test('exports and imports a validated local backup', async () => {
   });
 
   await expect(page.locator('#backup-status')).toHaveText('Imported 1; 4 reminders now stored.');
-  await expect(page.locator('sr-reminder-item')).toHaveCount(4);
+  await expect(page.locator('and-tabs-content:not([hidden]) sr-reminder-item')).toHaveCount(4);
   await expect(page.locator('[data-id="imported"]')).toContainText('Imported from backup');
 
   await page.close();
@@ -190,7 +196,11 @@ test('the notification diagnostic sends a visible browser notification', async (
 
   await page.locator('#test-notification button').click();
 
-  await expect(page.locator('#notification-status')).toContainText('Test notification sent.');
+  // The status has to survive being read by someone who saw nothing appear, so
+  // it says the browser took it *and* names the desktop switch that decides.
+  const status = page.locator('#notification-status');
+  await expect(status).toContainText('Sent.');
+  await expect(status).toContainText(/System Settings|Focus assist|notification settings/);
   await expect
     .poll(() => page.evaluate(async () => Object.keys(await chrome.notifications.getAll())), {
       timeout: 5_000,
@@ -198,6 +208,40 @@ test('the notification diagnostic sends a visible browser notification', async (
       message: 'the diagnostic notification was never created',
     })
     .toEqual(['sticky-reminder-test-notification']);
+
+  await page.close();
+});
+
+test('the status alert stays out of the way until there is something to say', async () => {
+  const page = await openOptions();
+
+  // `and-alert` announces itself the moment it mounts, so an empty one sitting
+  // on the page would be read out on every load.
+  const status = page.locator('#backup-status');
+  await expect(status).toBeHidden();
+
+  await page.locator('#export-backup button').click();
+
+  await expect(status).toBeVisible();
+  await expect(status).toContainText('Exported');
+  await expect(status).toHaveAttribute('variant', 'default');
+
+  await page.close();
+});
+
+test('a failed import reports itself as an error', async () => {
+  const page = await openOptions();
+
+  await page.locator('#import-backup button').click();
+  await page.locator('#backup-file').setInputFiles({
+    name: 'broken.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from('{"format":"nope"}'),
+  });
+
+  const status = page.locator('#backup-status');
+  await expect(status).toContainText('not a supported Sticky Reminder backup');
+  await expect(status).toHaveAttribute('variant', 'destructive');
 
   await page.close();
 });

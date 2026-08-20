@@ -1,6 +1,18 @@
+// Must stay above the component imports: it fills the icon registry, and
+// defining an `and-*` element renders every icon inside it against whatever the
+// registry holds at that instant.
+import '@sticky-reminder/ui/icons';
+import '@andersseen/web-components/components/and-alert.js';
+import '@andersseen/web-components/components/and-badge.js';
 import '@andersseen/web-components/components/and-card.js';
 import '@andersseen/web-components/components/and-button.js';
 import '@andersseen/web-components/components/and-icon.js';
+import '@andersseen/web-components/components/and-input.js';
+import '@andersseen/web-components/components/and-skeleton.js';
+import '@andersseen/web-components/components/and-tabs-content.js';
+import '@andersseen/web-components/components/and-tabs-list.js';
+import '@andersseen/web-components/components/and-tabs-trigger.js';
+import '@andersseen/web-components/components/and-tabs.js';
 import './style.css';
 import { MotionController } from '@andersseen/motion';
 import {
@@ -9,9 +21,13 @@ import {
   listReminders,
   toggleReminderCompletion,
 } from '@sticky-reminder/core';
-import { isOverdue, registerStickyIcons } from '@sticky-reminder/ui';
+import { isOverdue } from '@sticky-reminder/ui';
 import { cancelReminderAlarm, scheduleReminderAlarm, syncReminderAlarms } from '../../utils/alarms';
-import { notificationsAllowed, sendTestNotification } from '../../utils/notifications';
+import {
+  notificationSettingsHint,
+  notificationsAllowed,
+  sendTestNotification,
+} from '../../utils/notifications';
 import {
   createReminderBackup,
   importReminderBackup,
@@ -20,21 +36,36 @@ import {
   updateStoredReminder,
 } from '../../utils/storage';
 
-registerStickyIcons();
-
 type Filter = 'all' | 'pending' | 'completed';
 
-const container = document.getElementById('reminders') as HTMLElement;
-const filterBar = document.getElementById('filters') as HTMLElement;
-const search = document.getElementById('search') as HTMLInputElement;
+const tabs = document.getElementById('filters') as HTMLElement;
+const search = document.getElementById('search') as HTMLElement & { value: string };
 const exportBackup = document.getElementById('export-backup') as HTMLElement;
 const importBackup = document.getElementById('import-backup') as HTMLElement;
 const backupFile = document.getElementById('backup-file') as HTMLInputElement;
 const backupStatus = document.getElementById('backup-status') as HTMLElement;
+const searchTerm = () => search.value ?? '';
 const testNotification = document.getElementById('test-notification') as HTMLElement;
 const notificationStatus = document.getElementById('notification-status') as HTMLElement;
 const permissionWarning = document.getElementById('permission-warning') as HTMLElement;
 const waitingStat = document.querySelector('.stat-waiting') as HTMLElement;
+
+/** The panel `and-tabs` is currently showing. Its id is generated, so: by value. */
+function panel(name: Filter = filter): HTMLElement {
+  return tabs.querySelector(`and-tabs-content[value="${name}"]`) as HTMLElement;
+}
+
+/**
+ * Fills the panel on screen and empties the others. Only one filter is visible
+ * at a time, and a hidden panel left holding its last render keeps rows for
+ * reminders that may since have been edited or deleted.
+ */
+function fillPanel(...nodes: Node[]) {
+  const active = panel();
+  for (const content of tabs.querySelectorAll<HTMLElement>('and-tabs-content')) {
+    content.replaceChildren(...(content === active ? nodes : []));
+  }
+}
 
 const MAX_BACKUP_BYTES = 5 * 1024 * 1024;
 
@@ -68,7 +99,7 @@ function renderEmptyState(): HTMLElement {
     document.createTextNode(
       query === ''
         ? 'Open the popup from the toolbar to create your first one.'
-        : `Nothing here matches “${search.value.trim()}”.`,
+        : `Nothing here matches “${searchTerm().trim()}”.`,
     ),
   );
 
@@ -97,16 +128,27 @@ function renderStats(reminders: Reminder[]) {
   waitingStat.hidden = waiting === 0;
 }
 
+/** Sized to a row, so the list does not claim to be empty before it has read. */
+function renderLoading() {
+  fillPanel(
+    ...Array.from({ length: 3 }, () => {
+      const skeleton = document.createElement('and-skeleton');
+      skeleton.height = '68px';
+      return skeleton;
+    }),
+  );
+}
+
 function renderList(reminders: Reminder[]) {
   renderStats(reminders);
 
   const visible = listReminders(reminders.filter(matches));
   if (visible.length === 0) {
-    container.replaceChildren(renderEmptyState());
+    fillPanel(renderEmptyState());
     return;
   }
 
-  container.replaceChildren(
+  fillPanel(
     ...visible.map((reminder) => {
       const item = document.createElement('sr-reminder-item');
       item.reminder = reminder;
@@ -126,7 +168,7 @@ function renderList(reminders: Reminder[]) {
 function revealHighlighted() {
   if (!highlightId) return;
 
-  const item = container.querySelector<HTMLElement>(`[data-id="${CSS.escape(highlightId)}"]`);
+  const item = panel().querySelector<HTMLElement>(`[data-id="${CSS.escape(highlightId)}"]`);
   if (!item) return;
 
   item.classList.add('is-highlighted');
@@ -138,14 +180,23 @@ async function refreshList() {
   renderList(await loadReminders());
 }
 
+/**
+ * `and-alert` announces itself the moment it mounts, which is why both of these
+ * start hidden rather than as an empty alert sitting on the page: they only
+ * exist once there is something to say about an action the user just took.
+ */
+function setAlert(alert: HTMLElement, message: string, error = false) {
+  alert.textContent = message;
+  alert.setAttribute('variant', error ? 'destructive' : 'default');
+  alert.hidden = false;
+}
+
 function setBackupStatus(message: string, error = false) {
-  backupStatus.textContent = message;
-  backupStatus.dataset.state = error ? 'error' : 'success';
+  setAlert(backupStatus, message, error);
 }
 
 function setNotificationStatus(message: string, error = false) {
-  notificationStatus.textContent = message;
-  notificationStatus.dataset.state = error ? 'error' : 'success';
+  setAlert(notificationStatus, message, error);
 }
 
 exportBackup.addEventListener('click', async () => {
@@ -165,8 +216,12 @@ importBackup.addEventListener('click', () => backupFile.click());
 testNotification.addEventListener('click', async () => {
   try {
     await sendTestNotification();
+    // The browser taking it is as far as the extension can see. If nothing
+    // appeared on screen, the desktop dropped it after that point, and the
+    // whole of the fix is one switch the extension cannot reach — so say which
+    // one rather than leaving the user to conclude reminders are broken.
     setNotificationStatus(
-      'Test notification sent. If nothing appeared, check browser and OS notification settings.',
+      `Sent. If nothing appeared, the browser accepted it and your desktop discarded it. ${notificationSettingsHint()}`,
     );
   } catch {
     setNotificationStatus('Could not send a notification. Check browser permissions.', true);
@@ -192,23 +247,21 @@ backupFile.addEventListener('change', async () => {
   }
 });
 
-filterBar.addEventListener('click', (event) => {
-  const tab = (event.target as HTMLElement).closest<HTMLElement>('[data-filter]');
-  if (!tab || tab.dataset.filter === filter) return;
-
-  filter = tab.dataset.filter as Filter;
-  for (const node of filterBar.querySelectorAll<HTMLElement>('[data-filter]')) {
-    node.setAttribute('aria-selected', String(node === tab));
-  }
+// `and-tabs` owns the selection, the roving tabindex and the arrow keys; all
+// that is left is to fill the panel it just switched to.
+tabs.addEventListener('andTabChange', (event) => {
+  filter = (event as CustomEvent<Filter>).detail;
   void refreshList();
 });
 
-search.addEventListener('input', () => {
-  query = search.value.trim().toLowerCase();
+// `and-input` renders a real input but reports through its own event, and the
+// native one does not cross out of the component.
+search.addEventListener('andInputChange', (event) => {
+  query = (event as CustomEvent<string>).detail.trim().toLowerCase();
   void refreshList();
 });
 
-container.addEventListener('sr-reminder-toggle', async (event) => {
+tabs.addEventListener('sr-reminder-toggle', async (event) => {
   const { id } = (event as CustomEvent<{ id: string }>).detail;
   const reminder = (await loadReminders()).find((r) => r.id === id);
   if (!reminder) return;
@@ -220,7 +273,7 @@ container.addEventListener('sr-reminder-toggle', async (event) => {
   await refreshList();
 });
 
-container.addEventListener('sr-reminder-delete', async (event) => {
+tabs.addEventListener('sr-reminder-delete', async (event) => {
   const { id } = (event as CustomEvent<{ id: string }>).detail;
   await cancelReminderAlarm(id);
   await removeReminder(id);
@@ -236,5 +289,6 @@ async function checkNotificationPermission() {
   permissionWarning.hidden = (await notificationsAllowed()) !== false;
 }
 
+renderLoading();
 void refreshList();
 void checkNotificationPermission();

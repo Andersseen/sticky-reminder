@@ -25,13 +25,11 @@
     </header>
 
     <main class="options" and-layout="vertical gap:lg p:lg">
-      <p id="permission-warning" class="permission-warning" role="alert" hidden>
+      <and-alert id="permission-warning" variant="destructive" hidden>
         <and-icon name="bell" size="14"></and-icon>
-        <span>
-          This browser is currently blocking notifications, so reminders cannot reach you. Allow
-          notifications for this browser in your operating system settings, then send a test below.
-        </span>
-      </p>
+        This browser is currently blocking notifications, so reminders cannot reach you. Allow
+        notifications for this browser in your operating system settings, then send a test below.
+      </and-alert>
 
       <section class="stats" and-layout="horizontal gap:sm wrap:wrap" and-motion="fade-in">
         <and-card padded class="stat stat-waiting">
@@ -66,7 +64,7 @@
           <and-button id="import-backup" variant="outline" size="sm">Import backup</and-button>
           <input id="backup-file" type="file" accept="application/json,.json" hidden />
         </div>
-        <p id="backup-status" class="backup-status" role="status" aria-live="polite"></p>
+        <and-alert id="backup-status" role="status" aria-live="polite" hidden></and-alert>
       </and-card>
 
       <and-card padded class="diagnostics-panel" and-motion="fade-in">
@@ -78,61 +76,46 @@
           <and-icon name="bell" size="14"></and-icon>
           Send test
         </and-button>
-        <p id="notification-status" class="diagnostics-status" role="status" aria-live="polite"></p>
+        <and-alert id="notification-status" role="status" aria-live="polite" hidden></and-alert>
       </and-card>
 
       <section and-layout="vertical gap:sm">
-        <div class="toolbar">
-          <div class="sr-segmented" role="tablist" aria-label="Filter reminders" id="filters">
-            <button
-              type="button"
-              class="sr-segment"
-              role="tab"
-              data-filter="all"
-              aria-selected="true"
-              aria-controls="reminders"
-            >
-              All
-              <span class="sr-segment-count" data-count="all">0</span>
-            </button>
-            <button
-              type="button"
-              class="sr-segment"
-              role="tab"
-              data-filter="pending"
-              aria-selected="false"
-              aria-controls="reminders"
-            >
-              Upcoming
-              <span class="sr-segment-count" data-count="pending">0</span>
-            </button>
-            <button
-              type="button"
-              class="sr-segment"
-              role="tab"
-              data-filter="completed"
-              aria-selected="false"
-              aria-controls="reminders"
-            >
-              Done
-              <span class="sr-segment-count" data-count="completed">0</span>
-            </button>
+        <and-tabs class="sr-tabs" id="filters" default-value="all" and-layout="vertical gap:sm">
+          <div class="toolbar">
+            <and-tabs-list aria-label="Filter reminders">
+              <and-tabs-trigger value="all">
+                All
+                <and-badge data-count="all">0</and-badge>
+              </and-tabs-trigger>
+              <and-tabs-trigger value="pending">
+                Upcoming
+                <and-badge data-count="pending">0</and-badge>
+              </and-tabs-trigger>
+              <and-tabs-trigger value="completed">
+                Done
+                <and-badge data-count="completed">0</and-badge>
+              </and-tabs-trigger>
+            </and-tabs-list>
+
+            <div class="search">
+              <and-icon name="search" size="14"></and-icon>
+              <and-input
+                id="search"
+                type="search"
+                name="search"
+                label="Search reminders"
+                placeholder="Search reminders"
+              ></and-input>
+            </div>
           </div>
 
-          <div class="search">
-            <and-icon name="search" size="14"></and-icon>
-            <input
-              id="search"
-              type="search"
-              class="search-field"
-              placeholder="Search reminders"
-              aria-label="Search reminders"
-              autocomplete="off"
-            />
-          </div>
-        </div>
-
-        <div id="reminders" role="tabpanel" and-layout="vertical gap:xs"></div>
+          <!-- One panel per filter: `and-tabs-content` owns the show/hide and
+               the `aria-controls` pairing, and it generates its own id, so it
+               is looked up by `value` rather than being given one. -->
+          <and-tabs-content value="all" and-layout="vertical gap:xs"></and-tabs-content>
+          <and-tabs-content value="pending" and-layout="vertical gap:xs"></and-tabs-content>
+          <and-tabs-content value="completed" and-layout="vertical gap:xs"></and-tabs-content>
+        </and-tabs>
       </section>
 
       <p class="sr-hint footer-hint">

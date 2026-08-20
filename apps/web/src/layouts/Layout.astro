@@ -72,13 +72,15 @@ const ogImage = new URL(url('/og.png'), origin);
     <SiteFooter />
 
     <script>
+      // Must stay above the component imports: it fills the icon registry, and
+      // defining an `and-*` element renders every icon inside it against
+      // whatever the registry holds at that instant.
+      import '@sticky-reminder/ui/icons';
       import '@andersseen/web-components/components/and-badge.js';
       import '@andersseen/web-components/components/and-button.js';
       import '@andersseen/web-components/components/and-icon.js';
       import { MotionController } from '@andersseen/motion';
-      import { registerStickyIcons } from '@sticky-reminder/ui';
 
-      registerStickyIcons();
       new MotionController().scan();
 
       const root = document.documentElement;

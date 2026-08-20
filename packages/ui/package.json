@@ -11,6 +11,10 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
+    "./icons": {
+      "import": "./dist/icons.js",
+      "types": "./dist/icons.d.ts"
+    },
     "./styles": {
       "import": "./styles/base.css"
     }
