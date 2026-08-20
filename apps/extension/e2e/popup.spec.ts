@@ -87,7 +87,7 @@ test('the popup loads with the design system applied', async () => {
   const page = await openPopup();
 
   await expect(page.locator('sr-reminder-form')).toBeVisible();
-  await expect(page.locator('#reminders')).toContainText('No reminders yet');
+  await expect(page.locator('and-tabs-content:not([hidden])')).toContainText('No reminders yet');
 
   // The tokens stylesheet resolved if the button picked up a themed background.
   const submit = page.locator('sr-reminder-form and-button[type="submit"] button');
@@ -104,8 +104,12 @@ test('the sidepanel reuses the reminder flow without covering page content', asy
   await fillReminder(page, 'Review store listing', 'none');
   await submitForm(page);
 
-  await expect(page.locator('sr-reminder-item').first()).toContainText('Review store listing');
-  await expect(page.locator('#reminders')).toContainText('Review store listing');
+  await expect(
+    page.locator('and-tabs-content:not([hidden]) sr-reminder-item').first(),
+  ).toContainText('Review store listing');
+  await expect(page.locator('and-tabs-content:not([hidden])')).toContainText(
+    'Review store listing',
+  );
 
   await page.close();
 });
@@ -115,7 +119,7 @@ test('the form refuses an empty submission', async () => {
 
   await submitForm(page);
 
-  await expect(page.locator('#reminders')).toContainText('No reminders yet');
+  await expect(page.locator('and-tabs-content:not([hidden])')).toContainText('No reminders yet');
   expect(await page.evaluate(() => chrome.alarms.getAll())).toHaveLength(0);
 
   await page.close();
@@ -126,7 +130,7 @@ test('creating a reminder stores it and schedules an alarm', async () => {
   await fillReminder(page, 'Water the plants', 'daily');
   await submitForm(page);
 
-  const item = page.locator('sr-reminder-item').first();
+  const item = page.locator('and-tabs-content:not([hidden]) sr-reminder-item').first();
   await expect(item).toContainText('Water the plants');
   await expect(item.locator('and-badge')).toContainText('Daily');
 
@@ -194,11 +198,11 @@ test('deleting a reminder clears its alarm too', async () => {
   const page = await openPopup();
   await fillReminder(page, 'Temporary', 'none');
   await submitForm(page);
-  await expect(page.locator('sr-reminder-item')).toHaveCount(1);
+  await expect(page.locator('and-tabs-content:not([hidden]) sr-reminder-item')).toHaveCount(1);
 
   await page.locator('sr-reminder-item [aria-label="Delete reminder"] button').click();
 
-  await expect(page.locator('#reminders')).toContainText('No reminders yet');
+  await expect(page.locator('and-tabs-content:not([hidden])')).toContainText('No reminders yet');
   expect(await page.evaluate(() => chrome.alarms.getAll())).toHaveLength(0);
 
   await page.close();
@@ -208,7 +212,9 @@ test('a fired repeating alarm reschedules instead of completing', async () => {
   const page = await openPopup();
   await fillReminder(page, 'Standup', 'daily');
   await submitForm(page);
-  await expect(page.locator('sr-reminder-item').first()).toContainText('Standup');
+  await expect(
+    page.locator('and-tabs-content:not([hidden]) sr-reminder-item').first(),
+  ).toContainText('Standup');
 
   // Bring the due date forward to a moment ago, so firing the alarm reproduces
   // a reminder coming due rather than one triggered an hour early — those are
@@ -260,18 +266,79 @@ test('completing a reminder moves it to the Done tab', async () => {
   const page = await openPopup();
   await fillReminder(page, 'Pay the invoice', 'none');
   await submitForm(page);
-  await expect(page.locator('sr-reminder-item')).toHaveCount(1);
+  await expect(page.locator('and-tabs-content:not([hidden]) sr-reminder-item')).toHaveCount(1);
 
   await page.locator('sr-reminder-item [aria-label="Mark as done"] button').click();
 
   // Gone from Upcoming, and its alarm went with it.
-  await expect(page.locator('#reminders')).toContainText('No reminders yet');
+  await expect(page.locator('and-tabs-content:not([hidden])')).toContainText('No reminders yet');
   expect(await page.evaluate(() => chrome.alarms.getAll())).toHaveLength(0);
 
-  await page.locator('[data-filter="completed"]').click();
-  await expect(page.locator('sr-reminder-item')).toContainText('Pay the invoice');
+  await page.locator('and-tabs-trigger[value="completed"]').click();
+  await expect(page.locator('and-tabs-content:not([hidden]) sr-reminder-item')).toContainText(
+    'Pay the invoice',
+  );
   await expect(page.locator('[data-count="completed"]')).toHaveText('1');
   await expect(page.locator('[data-count="pending"]')).toHaveText('0');
+
+  await page.close();
+});
+
+test('the filters are reachable from the keyboard', async () => {
+  const page = await openPopup();
+  await fillReminder(page, 'Keyboard reachable', 'none');
+  await submitForm(page);
+
+  // The hand-rolled segmented control this replaced carried `role="tab"` and
+  // listened for clicks only: every filter was a separate tab stop and the
+  // arrow keys did nothing. `and-tabs` brings the roving tabindex with it.
+  const upcoming = page.locator('and-tabs-trigger[value="pending"]');
+  const done = page.locator('and-tabs-trigger[value="completed"]');
+  await expect(upcoming).toHaveAttribute('tabindex', '0');
+  await expect(done).toHaveAttribute('tabindex', '-1');
+
+  await upcoming.focus();
+  await page.keyboard.press('ArrowRight');
+
+  await expect(done).toHaveAttribute('data-state', 'active');
+  await expect(page.locator('and-tabs-content:not([hidden])')).toContainText('Nothing done yet');
+
+  await page.keyboard.press('ArrowLeft');
+  await expect(upcoming).toHaveAttribute('data-state', 'active');
+  await expect(page.locator('and-tabs-content:not([hidden])')).toContainText('Keyboard reachable');
+
+  await page.close();
+});
+
+test('only the filter on screen holds rows', async () => {
+  const page = await openPopup();
+  await fillReminder(page, 'Only once', 'none');
+  await submitForm(page);
+  await page.locator('and-tabs-trigger[value="completed"]').click();
+
+  // Each filter is its own `and-tabs-content`, so a hidden one left holding its
+  // last render would keep rows for reminders that have since changed.
+  await expect(page.locator('sr-reminder-item')).toHaveCount(0);
+
+  await page.close();
+});
+
+test('an icon-only button names itself, inside the popup', async () => {
+  const page = await openPopup();
+
+  await page.locator('#open-options').hover();
+
+  const tooltip = page.locator('and-tooltip [role="tooltip"][data-state="open"]');
+  await expect(tooltip).toHaveText('Open all reminders');
+
+  // `and-tooltip` has no collision handling, and both toolbar buttons sit
+  // against the right edge: placed below, the label ran off the popup.
+  const box = await tooltip.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box?.x).toBeGreaterThanOrEqual(0);
+  expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(
+    await page.evaluate(() => window.innerWidth),
+  );
 
   await page.close();
 });

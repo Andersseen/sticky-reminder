@@ -4,6 +4,20 @@ All notable changes are documented here. Versions follow Semantic Versioning.
 
 ## [Unreleased]
 
+### Changed
+
+- The chrome the extension had been hand-rolling is now built from the shared
+  components. The filter control is `and-tabs`, which brings the roving
+  tabindex, the arrow/Home/End keys and the `aria-controls` pairing the
+  hand-written `role="tablist"` never had — every filter used to be its own tab
+  stop and the arrow keys did nothing. The options page's status lines and its
+  notification warning are `and-alert`, its search field is `and-input`, the
+  toolbar's icon-only buttons carry an `and-tooltip` that a keyboard can reach
+  rather than a `title` only a mouse could, and the list shows `and-skeleton`
+  rows while storage is still being read instead of claiming to be empty.
+  About 90 lines of bespoke CSS went with them; the density of the filter pill
+  is the only thing still set by hand.
+
 ### Fixed
 
 - Every icon in the popup and the sidebar rendered as an empty box, which left

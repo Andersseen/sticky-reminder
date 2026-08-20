@@ -15,10 +15,6 @@ body {
   gap: 0.125rem;
 }
 
-[hidden] {
-  display: none !important;
-}
-
 .heading {
   font-size: 0.9375rem;
   font-weight: 600;

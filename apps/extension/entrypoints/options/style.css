@@ -57,25 +57,10 @@
   flex-wrap: wrap;
 }
 
-.backup-status,
-.diagnostics-status {
+/* Both panels are a grid; the alert reporting what just happened spans it. */
+#backup-status,
+#notification-status {
   grid-column: 1 / -1;
-  min-height: 1.125rem;
-}
-
-.backup-status:empty,
-.diagnostics-status:empty {
-  display: none;
-}
-
-.backup-status[data-state="success"],
-.diagnostics-status[data-state="success"] {
-  color: hsl(var(--primary));
-}
-
-.backup-status[data-state="error"],
-.diagnostics-status[data-state="error"] {
-  color: hsl(var(--destructive));
 }
 
 @media (max-width: 38rem) {
@@ -136,23 +121,26 @@
   box-shadow: 0 0 0 2px hsl(var(--ring) / 0.25);
 }
 
-.search-field {
+/* `and-input` renders its `<input>` into light DOM, which is what makes it
+   reachable from here at all: the pill, its focus ring and the leading icon are
+   the field, so the atom's own box has to stop drawing a second one inside it. */
+.search and-input {
   flex: 1 1 auto;
   min-width: 0;
+}
+
+.search and-input input {
   height: 2rem;
+  padding: 0;
   border: 0;
   background: transparent;
-  color: hsl(var(--foreground));
-  font: inherit;
+  box-shadow: none;
   font-size: 0.8125rem;
 }
 
-.search-field:focus {
+.search and-input input:focus-visible {
   outline: none;
-}
-
-.search-field::placeholder {
-  color: hsl(var(--muted-foreground));
+  box-shadow: none;
 }
 
 /* Opened from a notification: the row that was clicked gets a moment of ring
@@ -199,22 +187,4 @@
 
 .stat-waiting .stat-value {
   color: hsl(var(--destructive));
-}
-
-.permission-warning {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.625rem;
-  margin: 0;
-  padding: 0.875rem 1rem;
-  border: var(--border-width, 1px) solid hsl(var(--destructive) / 0.35);
-  border-radius: calc(var(--radius) * 1.25);
-  background: hsl(var(--destructive) / 0.08);
-  color: hsl(var(--destructive));
-  font-size: 0.875rem;
-  line-height: 1.45;
-}
-
-.permission-warning[hidden] {
-  display: none;
 }
