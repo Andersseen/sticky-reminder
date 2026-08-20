@@ -98,6 +98,26 @@ export async function sendTestNotification(now = new Date()): Promise<string> {
 }
 
 /**
+ * Where a notification the browser already accepted can still be thrown away.
+ *
+ * Nothing in the extensions API can see any of this: `create` resolves with an
+ * id and `getPermissionLevel` answers "granted" whether the desktop went on to
+ * draw the notification or dropped it on the floor, which is why a reminder
+ * that never arrives looks identical to one that did. Naming the one screen
+ * that decides is the only help worth giving.
+ */
+export function notificationSettingsHint(userAgent = navigator.userAgent): string {
+  if (userAgent.includes('Mac')) {
+    return 'On macOS, open System Settings → Notifications, find this browser, and turn "Allow notifications" on. Check that Do Not Disturb and any Focus are off too.';
+  }
+  if (userAgent.includes('Windows')) {
+    return 'On Windows, open Settings → System → Notifications, find this browser, and turn its notifications on. Check that Focus assist and Do not disturb are off too.';
+  }
+
+  return 'Open your desktop notification settings, allow notifications for this browser, and turn off any do-not-disturb mode.';
+}
+
+/**
  * Whether the browser will actually show anything, or `null` where it declines
  * to say — Firefox has no `getPermissionLevel`. A reminder nobody can receive
  * is worth surfacing before the user trusts it with something that matters.

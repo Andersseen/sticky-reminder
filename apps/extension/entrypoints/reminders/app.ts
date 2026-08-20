@@ -1,6 +1,13 @@
+// Must stay above the component imports: it fills the icon registry, and
+// defining an `and-*` element renders every icon inside it against whatever the
+// registry holds at that instant.
+import '@sticky-reminder/ui/icons';
 import '@andersseen/web-components/components/and-button.js';
 import '@andersseen/web-components/components/and-card.js';
 import '@andersseen/web-components/components/and-icon.js';
+// Defines <sr-reminder-form>, <sr-reminder-item> and <sr-empty-state>. The page
+// only ever names them in markup, so without this nothing pulls them in.
+import '@sticky-reminder/ui';
 import { MotionController } from '@andersseen/motion';
 import {
   type Reminder,
@@ -9,11 +16,7 @@ import {
   toggleReminderCompletion,
   updateReminder,
 } from '@sticky-reminder/core';
-import {
-  type ReminderFormData,
-  type SrReminderForm,
-  registerStickyIcons,
-} from '@sticky-reminder/ui';
+import type { ReminderFormData, SrReminderForm } from '@sticky-reminder/ui';
 import { browser } from 'wxt/browser';
 import { cancelReminderAlarm, scheduleReminderAlarm } from '../../utils/alarms';
 import {
@@ -22,8 +25,6 @@ import {
   removeReminder,
   updateStoredReminder,
 } from '../../utils/storage';
-
-registerStickyIcons();
 
 type Filter = 'pending' | 'completed';
 

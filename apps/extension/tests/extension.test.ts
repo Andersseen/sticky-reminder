@@ -18,9 +18,12 @@ const {
   snoozeAlarmName,
   syncReminderAlarms,
 } = await import('../utils/alarms');
-const { TEST_NOTIFICATION_ID, sendTestNotification, showReminderNotification } = await import(
-  '../utils/notifications'
-);
+const {
+  TEST_NOTIFICATION_ID,
+  notificationSettingsHint,
+  sendTestNotification,
+  showReminderNotification,
+} = await import('../utils/notifications');
 const { refreshBadge } = await import('../utils/badge');
 const {
   addReminder,
@@ -259,6 +262,19 @@ describe('notifications', () => {
     await sendTestNotification(new Date('2026-08-18T12:35:00.000Z'));
 
     expect(Object.keys(await fakeBrowser.notifications.getAll())).toEqual([TEST_NOTIFICATION_ID]);
+  });
+
+  it('names the desktop setting that silently discards an accepted notification', () => {
+    expect(notificationSettingsHint('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)')).toContain(
+      'System Settings',
+    );
+    expect(notificationSettingsHint('Mozilla/5.0 (Windows NT 10.0; Win64; x64)')).toContain(
+      'Focus assist',
+    );
+    // Anything else still gets a direction to walk in rather than nothing.
+    expect(notificationSettingsHint('Mozilla/5.0 (X11; Linux x86_64)')).toContain(
+      'notification settings',
+    );
   });
 });
 

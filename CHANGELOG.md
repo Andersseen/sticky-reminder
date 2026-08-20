@@ -2,6 +2,24 @@
 
 All notable changes are documented here. Versions follow Semantic Versioning.
 
+## [Unreleased]
+
+### Fixed
+
+- Every icon in the popup and the sidebar rendered as an empty box, which left
+  the toolbar's two icon-only buttons — open the sidebar, open all reminders —
+  looking like blank squares. `and-icon` reads the icon registry once, when it
+  upgrades, and both pages are served two entry scripts: the shared chunk that
+  defines the components, and then the page's own. Registration ran in the
+  second one, a script tag after every icon had already rendered against an
+  empty registry. It is now a side effect of importing `@sticky-reminder/ui/icons`,
+  which the entrypoints pull in ahead of the components.
+- The notification check said to look at "browser and OS notification settings"
+  without saying where. A notification the browser accepts and the desktop then
+  discards is invisible to the extension — `create` resolves and
+  `getPermissionLevel` still answers "granted" — so the check now names the
+  screen that decides, per operating system.
+
 ## [0.4.0] — 2026-08-19
 
 ### Added

@@ -1,3 +1,7 @@
+// Must stay above the component imports: it fills the icon registry, and
+// defining an `and-*` element renders every icon inside it against whatever the
+// registry holds at that instant.
+import '@sticky-reminder/ui/icons';
 import '@andersseen/web-components/components/and-card.js';
 import '@andersseen/web-components/components/and-button.js';
 import '@andersseen/web-components/components/and-icon.js';
@@ -9,9 +13,13 @@ import {
   listReminders,
   toggleReminderCompletion,
 } from '@sticky-reminder/core';
-import { isOverdue, registerStickyIcons } from '@sticky-reminder/ui';
+import { isOverdue } from '@sticky-reminder/ui';
 import { cancelReminderAlarm, scheduleReminderAlarm, syncReminderAlarms } from '../../utils/alarms';
-import { notificationsAllowed, sendTestNotification } from '../../utils/notifications';
+import {
+  notificationSettingsHint,
+  notificationsAllowed,
+  sendTestNotification,
+} from '../../utils/notifications';
 import {
   createReminderBackup,
   importReminderBackup,
@@ -19,8 +27,6 @@ import {
   removeReminder,
   updateStoredReminder,
 } from '../../utils/storage';
-
-registerStickyIcons();
 
 type Filter = 'all' | 'pending' | 'completed';
 
@@ -165,8 +171,12 @@ importBackup.addEventListener('click', () => backupFile.click());
 testNotification.addEventListener('click', async () => {
   try {
     await sendTestNotification();
+    // The browser taking it is as far as the extension can see. If nothing
+    // appeared on screen, the desktop dropped it after that point, and the
+    // whole of the fix is one switch the extension cannot reach — so say which
+    // one rather than leaving the user to conclude reminders are broken.
     setNotificationStatus(
-      'Test notification sent. If nothing appeared, check browser and OS notification settings.',
+      `Sent. If nothing appeared, the browser accepted it and your desktop discarded it. ${notificationSettingsHint()}`,
     );
   } catch {
     setNotificationStatus('Could not send a notification. Check browser permissions.', true);

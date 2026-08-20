@@ -190,7 +190,11 @@ test('the notification diagnostic sends a visible browser notification', async (
 
   await page.locator('#test-notification button').click();
 
-  await expect(page.locator('#notification-status')).toContainText('Test notification sent.');
+  // The status has to survive being read by someone who saw nothing appear, so
+  // it says the browser took it *and* names the desktop switch that decides.
+  const status = page.locator('#notification-status');
+  await expect(status).toContainText('Sent.');
+  await expect(status).toContainText(/System Settings|Focus assist|notification settings/);
   await expect
     .poll(() => page.evaluate(async () => Object.keys(await chrome.notifications.getAll())), {
       timeout: 5_000,
